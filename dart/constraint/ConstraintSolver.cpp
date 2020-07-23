@@ -515,8 +515,8 @@ void ConstraintSolver::updateConstraints()
     }
     else
     {
-      mContactConstraints.push_back(
-          std::make_shared<ContactConstraint>(contact, mTimeStep));
+      mContactConstraints.push_back(std::make_shared<ContactConstraint>(
+          contact, mTimeStep, contact.numContacts));
     }
   }
 

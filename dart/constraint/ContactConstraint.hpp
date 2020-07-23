@@ -51,7 +51,7 @@ class ContactConstraint : public ConstraintBase
 {
 public:
   /// Constructor
-  ContactConstraint(collision::Contact& contact, double timeStep);
+  ContactConstraint(collision::Contact& contact, double timeStep, int numC);
 
   /// Destructor
   ~ContactConstraint() override = default;

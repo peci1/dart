@@ -67,13 +67,13 @@ constexpr double DART_DEFAULT_FRICTION_COEFF = 1.0;
 constexpr double DART_DEFAULT_RESTITUTION_COEFF = 0.0;
 // slip compliance is combined through addition,
 // so set to half the global default value
-constexpr double DART_DEFAULT_SLIP_COMPLIANCE = 0.5*DART_CFM;
+constexpr double DART_DEFAULT_SLIP_COMPLIANCE = 0.0;
 const Eigen::Vector3d DART_DEFAULT_FRICTION_DIR =
     Eigen::Vector3d::UnitZ();
 
 //==============================================================================
 ContactConstraint::ContactConstraint(
-    collision::Contact& contact, double timeStep)
+    collision::Contact& contact, double timeStep, int numC)
   : ConstraintBase(),
     mTimeStep(timeStep),
     mBodyNodeA(const_cast<dynamics::ShapeFrame*>(
@@ -147,9 +147,9 @@ ContactConstraint::ContactConstraint(
     const double secondarySlipComplianceB =
                          computeSecondarySlipCompliance(shapeNodeB);
     // Combine slip compliances through addition
-    mSlipCompliance = slipComplianceA + slipComplianceB;
+    mSlipCompliance = (slipComplianceA + slipComplianceB) * numC;
     mSecondarySlipCompliance =
-        secondarySlipComplianceA + secondarySlipComplianceB;
+        (secondarySlipComplianceA + secondarySlipComplianceB) * numC;
 
     // Check shapeNodes for valid friction direction unit vectors
     auto frictionDirA = computeWorldFirstFrictionDir(shapeNodeA);
@@ -631,10 +631,12 @@ void ContactConstraint::getVelocityChange(double* vel, bool withCfm)
         vel[0] += vel[0] * mConstraintForceMixing;
         break;
       case 1:
-        vel[1] += vel[1] * (mSlipCompliance / mTimeStep);
+        // vel[1] += vel[1] * (mSlipCompliance / mTimeStep);
+        vel[1] += (mSlipCompliance / mTimeStep);
         break;
       case 2:
-        vel[2] += vel[2] * (mSecondarySlipCompliance / mTimeStep);
+        // vel[2] += vel[2] * (mSecondarySlipCompliance / mTimeStep);
+        vel[2] += (mSecondarySlipCompliance / mTimeStep);
         break;
       default:
         vel[mAppliedImpulseIndex]
@@ -703,6 +705,8 @@ void ContactConstraint::applyImpulse(double* lambda)
       mBodyNodeA->addConstraintImpulse(mSpatialNormalA.col(2) * lambda[2]);
     if (mBodyNodeB->isReactive())
       mBodyNodeB->addConstraintImpulse(mSpatialNormalB.col(2) * lambda[2]);
+
+    std::cout << "contact: " << mContact.force.transpose() << std::endl;
   }
   //----------------------------------------------------------------------------
   // Frictionless case
@@ -801,10 +805,6 @@ double ContactConstraint::computeSlipCompliance(
   {
     return DART_DEFAULT_SLIP_COMPLIANCE;
   }
-  else if (slipCompliance < 1e-9)
-  {
-    return 1e-9;
-  }
   return slipCompliance;
 }
 
@@ -830,10 +830,6 @@ double ContactConstraint::computeSecondarySlipCompliance(
   if (slipCompliance < 0)
   {
     return DART_DEFAULT_SLIP_COMPLIANCE;
-  }
-  else if (slipCompliance < 1e-9)
-  {
-    return 1e-9;
   }
   return slipCompliance;
 }
