@@ -305,18 +305,14 @@ void reportContacts(
   // without the checkings of repeatidity and co-linearity.
   if (1u == option.maxNumContacts)
   {
-    Contact contact = convertContact(contactGeoms[0], b1, b2, option);
-    contact.numContacts = numContacts;
-    result.addContact(contact);
+    result.addContact(convertContact(contactGeoms[0], b1, b2, option));
 
     return;
   }
 
   for (auto i = 0; i < numContacts; ++i)
   {
-    Contact contact = convertContact(contactGeoms[i], b1, b2, option);
-    contact.numContacts = numContacts;
-    result.addContact(contact);
+    result.addContact(convertContact(contactGeoms[i], b1, b2, option));
 
     if (result.getNumContacts() >= option.maxNumContacts)
       return;

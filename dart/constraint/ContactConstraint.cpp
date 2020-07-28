@@ -73,7 +73,7 @@ const Eigen::Vector3d DART_DEFAULT_FRICTION_DIR =
 
 //==============================================================================
 ContactConstraint::ContactConstraint(
-    collision::Contact& contact, double timeStep, int numC)
+    collision::Contact& contact, double timeStep)
   : ConstraintBase(),
     mTimeStep(timeStep),
     mBodyNodeA(const_cast<dynamics::ShapeFrame*>(
@@ -147,9 +147,9 @@ ContactConstraint::ContactConstraint(
     const double secondarySlipComplianceB =
                          computeSecondarySlipCompliance(shapeNodeB);
     // Combine slip compliances through addition
-    mSlipCompliance = (slipComplianceA + slipComplianceB) * numC;
+    mSlipCompliance = slipComplianceA + slipComplianceB;
     mSecondarySlipCompliance =
-        (secondarySlipComplianceA + secondarySlipComplianceB) * numC;
+        secondarySlipComplianceA + secondarySlipComplianceB;
 
     // Check shapeNodes for valid friction direction unit vectors
     auto frictionDirA = computeWorldFirstFrictionDir(shapeNodeA);
@@ -625,22 +625,17 @@ void ContactConstraint::getVelocityChange(double* vel, bool withCfm)
   // cfm variable in ODE
   if (withCfm)
   {
+    vel[mAppliedImpulseIndex]
+      += vel[mAppliedImpulseIndex] * mConstraintForceMixing;
     switch (mAppliedImpulseIndex)
     {
-      case 0:
-        vel[0] += vel[0] * mConstraintForceMixing;
-        break;
       case 1:
-        // vel[1] += vel[1] * (mSlipCompliance / mTimeStep);
         vel[1] += (mSlipCompliance / mTimeStep);
         break;
       case 2:
-        // vel[2] += vel[2] * (mSecondarySlipCompliance / mTimeStep);
         vel[2] += (mSecondarySlipCompliance / mTimeStep);
         break;
       default:
-        vel[mAppliedImpulseIndex]
-            += vel[mAppliedImpulseIndex] * mConstraintForceMixing;
         break;
     }
   }
@@ -706,7 +701,7 @@ void ContactConstraint::applyImpulse(double* lambda)
     if (mBodyNodeB->isReactive())
       mBodyNodeB->addConstraintImpulse(mSpatialNormalB.col(2) * lambda[2]);
 
-    std::cout << "contact: " << mContact.force.transpose() << std::endl;
+    // std::cout << "contact: " << mContact.force.transpose() << std::endl;
   }
   //----------------------------------------------------------------------------
   // Frictionless case
@@ -997,5 +992,26 @@ void ContactConstraint::uniteSkeletons()
   }
 }
 
+double ContactConstraint::getSlipCompliance() const
+{
+  return mSlipCompliance;
+}
+void ContactConstraint::setSlipCompliance(double slip)
+{
+  mSlipCompliance = slip;
+}
+double ContactConstraint::getSecondarySlipCompliance() const
+{
+  return mSecondarySlipCompliance;
+}
+void ContactConstraint::setSecondarySlipCompliance(double slip)
+{
+  mSecondarySlipCompliance = slip;
+}
+
+const collision::Contact &ContactConstraint::getContact() const
+{
+  return mContact;
+}
 } // namespace constraint
 } // namespace dart

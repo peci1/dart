@@ -51,7 +51,7 @@ class ContactConstraint : public ConstraintBase
 {
 public:
   /// Constructor
-  ContactConstraint(collision::Contact& contact, double timeStep, int numC);
+  ContactConstraint(collision::Contact& contact, double timeStep);
 
   /// Destructor
   ~ContactConstraint() override = default;
@@ -90,6 +90,15 @@ public:
   /// Get first frictional direction
   const Eigen::Vector3d& getFrictionDirection1() const;
 
+  double getSlipCompliance() const;
+
+  void setSlipCompliance(double slip);
+
+  double getSecondarySlipCompliance() const;
+
+  void setSecondarySlipCompliance(double slip);
+
+  const collision::Contact &getContact() const;
   //----------------------------------------------------------------------------
   // Friendship
   //----------------------------------------------------------------------------

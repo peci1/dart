@@ -64,8 +64,6 @@ struct Contact
   /// Second colliding collision object
   CollisionObject* collisionObject2;
 
-  int numContacts{1};
-
   /// Penetration depth
   double penetrationDepth;
 

@@ -478,10 +478,18 @@ void ConstraintSolver::updateConstraints()
   // Destroy previous soft contact constraints
   mSoftContactConstraints.clear();
 
+  // Create a mapping of contact pairs to the number of contacts between them
+  using ContactPair
+      = std::pair<collision::CollisionObject*, collision::CollisionObject*>;
+  std::map<ContactPair, size_t> contactPairMap;
+
   // Create new contact constraints
   for (auto i = 0u; i < mCollisionResult.getNumContacts(); ++i)
   {
     auto& contact = mCollisionResult.getContact(i);
+
+    ++contactPairMap[std::make_pair(
+        contact.collisionObject1, contact.collisionObject2)];
 
     if (collision::Contact::isZeroNormal(contact.normal))
     {
@@ -515,14 +523,25 @@ void ConstraintSolver::updateConstraints()
     }
     else
     {
-      mContactConstraints.push_back(std::make_shared<ContactConstraint>(
-          contact, mTimeStep, contact.numContacts));
+      auto constraint = std::make_shared<ContactConstraint>(contact, mTimeStep);
+      mContactConstraints.push_back(constraint);
     }
   }
 
   // Add the new contact constraints to dynamic constraint list
   for (const auto& contactConstraint : mContactConstraints)
   {
+    auto& contact = contactConstraint->getContact();
+    std::size_t numContacts = 1;
+    auto it = contactPairMap.find(
+        std::make_pair(contact.collisionObject1, contact.collisionObject2));
+    if (it != contactPairMap.end())
+      numContacts = it->second;
+
+    contactConstraint->setSlipCompliance(
+        contactConstraint->getSlipCompliance() * numContacts);
+    contactConstraint->setSecondarySlipCompliance(
+        contactConstraint->getSecondarySlipCompliance() * numContacts);
     contactConstraint->update();
 
     if (contactConstraint->isActive())
