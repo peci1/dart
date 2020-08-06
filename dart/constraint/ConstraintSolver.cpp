@@ -538,8 +538,8 @@ void ConstraintSolver::updateConstraints()
     if (it != contactPairMap.end())
       numContacts = it->second;
 
-    contactConstraint->setSlipCompliance(
-        contactConstraint->getSlipCompliance() * numContacts);
+    contactConstraint->setPrimarySlipCompliance(
+        contactConstraint->getPrimarySlipCompliance() * numContacts);
     contactConstraint->setSecondarySlipCompliance(
         contactConstraint->getSecondarySlipCompliance() * numContacts);
     contactConstraint->update();

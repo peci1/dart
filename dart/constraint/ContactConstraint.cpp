@@ -992,11 +992,11 @@ void ContactConstraint::uniteSkeletons()
   }
 }
 
-double ContactConstraint::getSlipCompliance() const
+double ContactConstraint::getPrimarySlipCompliance() const
 {
   return mSlipCompliance;
 }
-void ContactConstraint::setSlipCompliance(double slip)
+void ContactConstraint::setPrimarySlipCompliance(double slip)
 {
   mSlipCompliance = slip;
 }
