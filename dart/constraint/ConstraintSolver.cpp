@@ -488,9 +488,6 @@ void ConstraintSolver::updateConstraints()
   {
     auto& contact = mCollisionResult.getContact(i);
 
-    ++contactPairMap[std::make_pair(
-        contact.collisionObject1, contact.collisionObject2)];
-
     if (collision::Contact::isZeroNormal(contact.normal))
     {
       // Skip this contact. This is because we assume that a contact with
@@ -523,14 +520,20 @@ void ConstraintSolver::updateConstraints()
     }
     else
     {
-      auto constraint = std::make_shared<ContactConstraint>(contact, mTimeStep);
-      mContactConstraints.push_back(constraint);
+      // Increment the count of contacts between the two collision objects
+      ++contactPairMap[std::make_pair(
+          contact.collisionObject1, contact.collisionObject2)];
+
+      mContactConstraints.push_back(
+          std::make_shared<ContactConstraint>(contact, mTimeStep));
     }
   }
 
   // Add the new contact constraints to dynamic constraint list
   for (const auto& contactConstraint : mContactConstraints)
   {
+    // update the slip compliances of the contact constraints based on the
+    // number of contacts between the collision objects.
     auto& contact = contactConstraint->getContact();
     std::size_t numContacts = 1;
     auto it = contactPairMap.find(
