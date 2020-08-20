@@ -106,9 +106,9 @@ TEST(ForceDependentSlip, BoxSlipVelocity)
   using Eigen::Vector3d;
   const double mass = 5.0;
   const double slip = 0.02;
-  auto skeleton1 = createBox({0.3, 0.3, 0.3}, {-0.5, 0, 0.15});
+  auto skeleton1 = createBox({0.3, 0.3, 0.3}, {0, -0.5, 0.15});
   skeleton1->setName("Skeleton1");
-  auto skeleton2 = createBox({0.3, 0.3, 0.3}, {+0.5, 0, 0.15});
+  auto skeleton2 = createBox({0.3, 0.3, 0.3}, {0, +0.5, 0.15});
   skeleton2->setName("Skeleton2");
 
   auto body1 = skeleton1->getRootBodyNode();
@@ -205,11 +205,11 @@ TEST(ForceDependentSlip, CylinderSlipVelocity)
   const double mass = 2.0;
   const double radius = 0.5;
   const double slip = 0.02;
-  auto skeleton1 = createCylinder(radius, 0.3, {-5, 0, radius});
+  auto skeleton1 = createCylinder(radius, 0.3, {0, -5, radius});
   skeleton1->setName("Skeleton1");
 
   auto skeleton2 = createCylinder(
-      radius, 0.8, {5.0, 0, radius}, {math::constantsd::half_pi(), 0, 0});
+      radius, 0.8, {0, 5, radius}, {math::constantsd::half_pi(), 0, 0});
   skeleton2->setName("Skeleton2");
 
   auto body1 = skeleton1->getRootBodyNode();
@@ -228,9 +228,14 @@ TEST(ForceDependentSlip, CylinderSlipVelocity)
   auto body2Dynamics = body2->getShapeNode(0)->getDynamicsAspect();
   EXPECT_DOUBLE_EQ(body2Dynamics->getFrictionCoeff(), 1.0);
 
-  // Set the friction direction to +z in the shape frame because it always be
-  // orthogonal to the floor's normal.
+  // Set the friction direction to +z in the shape frame because it will always
+  // be orthogonal to the floor's normal.
   body2Dynamics->setFirstFrictionDirection(Vector3d::UnitZ());
+  // Since we want to test rolling with slipping for body2, we want to set a
+  // non-zero slip parameter in the direction orthogonal to the axis of rotation
+  // of the cylinder. The axis of rotation is in the body's +z direction, so we
+  // make that the first friction direction and set the non-zero slip parameter
+  // in the secondary direction.
   body2Dynamics->setSecondarySlipCompliance(slip);
   EXPECT_DOUBLE_EQ(body2Dynamics->getSecondarySlipCompliance(), slip);
   EXPECT_EQ(body2Dynamics->getFirstFrictionDirection(), Vector3d::UnitZ());
@@ -242,12 +247,10 @@ TEST(ForceDependentSlip, CylinderSlipVelocity)
   world->addSkeleton(skeleton1);
   world->addSkeleton(skeleton2);
 
-  const double dt = 0.001;
   const auto numSteps = 2000;
   const double extForceX = 1.0;
   const double extTorqueY = 2.0;
 
-  auto lastVel = body2->getLinearVelocity();
   for (auto i = 0u; i < numSteps; ++i)
   {
     body1->addExtForce({extForceX, 0, 0});
@@ -260,7 +263,7 @@ TEST(ForceDependentSlip, CylinderSlipVelocity)
       EXPECT_NEAR(extForceX * slip, body1->getLinearVelocity().x(), 1e-4);
       EXPECT_NEAR(0.0, body1->getLinearVelocity().y(), 1e-4);
 
-      // // body2 rolls with sliding. The difference between the linear velocity
+      // body2 rolls with sliding. The difference between the linear velocity
       // and the expected non-sliding velocity (angular velocity * radius) is
       // equal to F_fr * slip, where F_fr is the friction force. We compute the
       // friction force from the linear acceleration since it's the only linear
@@ -270,11 +273,11 @@ TEST(ForceDependentSlip, CylinderSlipVelocity)
       // There appears to be a bug in DART in obtaining the linear acceleration
       // of the body using (BodyNode::getLinearAcceleration), so we compute it
       // here via finite difference.
-      auto accel = (body2->getLinearVelocity() - lastVel) / dt;
-      EXPECT_NEAR(mass * accel.x() * slip, spinVel - linVel, 1e-4);
+      EXPECT_NEAR(
+          mass * body2->getLinearAcceleration().x() * slip,
+          spinVel - linVel,
+          1e-4);
       EXPECT_NEAR(0.0, body2->getLinearVelocity().y(), 1e-4);
     }
-
-    lastVel = body2->getLinearVelocity();
   }
 }
