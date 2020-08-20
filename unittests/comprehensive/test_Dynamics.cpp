@@ -2566,8 +2566,10 @@ TEST_F(DynamicsTest, OffsetCOM)
     EXPECT_TRUE(equals(Vector3d(0, 0, 10), angAccel))
         << "angAccel: " << angAccel.transpose();
     Vector3d linAccel = box->getLinearAcceleration();
-    Vector3d expLinAccel = angVel.cross(linVel) + angAccel.cross(
-        box->getWorldTransform().linear() * -box->getLocalCOM());
+    Vector3d expLinAccel
+        = angVel.cross(linVel)
+          + angAccel.cross(
+                box->getWorldTransform().linear() * -box->getLocalCOM());
     EXPECT_TRUE(equals(expLinAccel, linAccel))
         << "Expected: " << expLinAccel.transpose()
         << "\nActual: " << linAccel.transpose();

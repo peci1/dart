@@ -591,7 +591,7 @@ void FreeJoint::integratePositions(double _dt)
 {
   const Eigen::Vector6d& vel = getVelocitiesStatic();
   const Eigen::Vector6d& accel = getAccelerationsStatic();
-  auto *bn = getChildBodyNode();
+  auto* bn = getChildBodyNode();
   Eigen::Isometry3d Tcom;
   // Transform from joint to center of mass of child body
   Tcom = Eigen::Translation3d(
