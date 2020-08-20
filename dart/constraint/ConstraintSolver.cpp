@@ -31,6 +31,7 @@
  */
 
 #include "dart/constraint/ConstraintSolver.hpp"
+#include <algorithm>
 
 #include "dart/collision/CollisionFilter.hpp"
 #include "dart/collision/CollisionGroup.hpp"
@@ -481,7 +482,24 @@ void ConstraintSolver::updateConstraints()
   // Create a mapping of contact pairs to the number of contacts between them
   using ContactPair
       = std::pair<collision::CollisionObject*, collision::CollisionObject*>;
-  std::map<ContactPair, size_t> contactPairMap;
+
+  // Compare contact pairs while ignoring their order in the pair.
+  struct ContactPairCompare {
+    ContactPair SortedPair(const ContactPair &a)
+    {
+      if (a.first < a.second)
+        return std::make_pair(a.second, a.first);
+      return a;
+    }
+
+    bool operator()(const ContactPair &a, const ContactPair & b)
+    {
+      // Sort each pair and then do a lexicographical comparison
+      return SortedPair(a) < SortedPair(b);
+    }
+  };
+
+  std::map<ContactPair, size_t, ContactPairCompare> contactPairMap;
 
   // Create new contact constraints
   for (auto i = 0u; i < mCollisionResult.getNumContacts(); ++i)
