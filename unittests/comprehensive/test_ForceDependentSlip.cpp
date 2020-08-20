@@ -146,12 +146,12 @@ TEST(ForceDependentSlip, BoxSlipVelocity)
     if (i > 1000)
     {
       // The velocity of body1 should stabilize at F_ext * slip = 0.2 m/s
-      EXPECT_NEAR(extForce * slip, body1->getLinearVelocity().x(), 1e-4);
-      EXPECT_NEAR(0.0, body1->getLinearVelocity().y(), 1e-4);
+      EXPECT_NEAR(extForce * slip, body1->getLinearVelocity().x(), 2e-5);
+      EXPECT_NEAR(0.0, body1->getLinearVelocity().y(), 2e-5);
 
       // The second box should remain at rest because of friction
-      EXPECT_NEAR(0.0, body2->getLinearVelocity().x(), 1e-4);
-      EXPECT_NEAR(0.0, body2->getLinearVelocity().y(), 1e-4);
+      EXPECT_NEAR(0.0, body2->getLinearVelocity().x(), 2e-5);
+      EXPECT_NEAR(0.0, body2->getLinearVelocity().y(), 2e-5);
     }
   }
 
@@ -168,12 +168,12 @@ TEST(ForceDependentSlip, BoxSlipVelocity)
   {
     world->step();
   }
-  EXPECT_NEAR(0.0, body1->getLinearVelocity().x(), 1e-4);
-  EXPECT_NEAR(0.0, body1->getLinearVelocity().y(), 1e-4);
+  EXPECT_NEAR(0.0, body1->getLinearVelocity().x(), 2e-5);
+  EXPECT_NEAR(0.0, body1->getLinearVelocity().y(), 2e-5);
 
   // The second box should remain at rest because of friction
-  EXPECT_NEAR(0.0, body2->getLinearVelocity().x(), 1e-4);
-  EXPECT_NEAR(0.0, body2->getLinearVelocity().y(), 1e-4);
+  EXPECT_NEAR(0.0, body2->getLinearVelocity().x(), 2e-5);
+  EXPECT_NEAR(0.0, body2->getLinearVelocity().y(), 2e-5);
 
   // Apply force in the +y direction
   for (auto i = 0u; i < numSteps; ++i)
@@ -185,12 +185,12 @@ TEST(ForceDependentSlip, BoxSlipVelocity)
     if (i > 1500)
     {
       // The velocity of body1 should stabilize at F_ext * slip2 = 0.3 m/s
-      EXPECT_NEAR(0.0, body1->getLinearVelocity().x(), 1e-4);
-      EXPECT_NEAR(extForce * slip2, body1->getLinearVelocity().y(), 1e-4);
+      EXPECT_NEAR(0.0, body1->getLinearVelocity().x(), 2e-5);
+      EXPECT_NEAR(extForce * slip2, body1->getLinearVelocity().y(), 2e-5);
 
       // The second box should remain at rest because of friction
-      EXPECT_NEAR(0.0, body2->getLinearVelocity().x(), 1e-4);
-      EXPECT_NEAR(0.0, body2->getLinearVelocity().y(), 1e-4);
+      EXPECT_NEAR(0.0, body2->getLinearVelocity().x(), 2e-5);
+      EXPECT_NEAR(0.0, body2->getLinearVelocity().y(), 2e-5);
     }
   }
 }
@@ -260,8 +260,8 @@ TEST(ForceDependentSlip, CylinderSlipVelocity)
     if (i > 1000)
     {
       // The velocity of body1 should stabilize at F_ext * slip
-      EXPECT_NEAR(extForceX * slip, body1->getLinearVelocity().x(), 1e-4);
-      EXPECT_NEAR(0.0, body1->getLinearVelocity().y(), 1e-4);
+      EXPECT_NEAR(extForceX * slip, body1->getLinearVelocity().x(), 3e-5);
+      EXPECT_NEAR(0.0, body1->getLinearVelocity().y(), 3e-5);
 
       // body2 rolls with sliding. The difference between the linear velocity
       // and the expected non-sliding velocity (angular velocity * radius) is
@@ -276,8 +276,8 @@ TEST(ForceDependentSlip, CylinderSlipVelocity)
       EXPECT_NEAR(
           mass * body2->getLinearAcceleration().x() * slip,
           spinVel - linVel,
-          1e-4);
-      EXPECT_NEAR(0.0, body2->getLinearVelocity().y(), 1e-4);
+          3e-5);
+      EXPECT_NEAR(0.0, body2->getLinearVelocity().y(), 3e-5);
     }
   }
 }
