@@ -82,11 +82,11 @@ else
   exit 1
 fi
 
-# pagmo2
+# pagmo2: build from source until v2.16.0 is available on apt-get
 apt-get install -y --no-install-recommends \
   libboost-serialization-dev \
   libtbb-dev
-git clone https://github.com/esa/pagmo2.git -b 'v2.15.0' --single-branch --depth 1 &&
+git clone https://github.com/esa/pagmo2.git -b 'v2.16.0' --single-branch --depth 1 &&
   cd pagmo2 && mkdir build && cd build &&
   cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
