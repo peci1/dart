@@ -90,9 +90,9 @@ git clone https://github.com/esa/pagmo2.git -b 'v2.15.0' --single-branch --depth
   cd pagmo2 && mkdir build && cd build &&
   cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
-    -DPAGMO_WITH_EIGEN3=ON &&
+    -DPAGMO_WITH_EIGEN3=ON \
     -DPAGMO_WITH_NLOPT=ON \
-    -DPAGMO_WITH_IPOPT=ON \
+    -DPAGMO_WITH_IPOPT=ON &&
   make -j$(nproc) &&
   make install
 
