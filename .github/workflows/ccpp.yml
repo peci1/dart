@@ -106,6 +106,22 @@ jobs:
           BUILD_DARTPY: ON
         run: sudo -E .ci/script.sh
 
+  big_sur_clang_release:
+    name: macOS 11.0 [Clang|Release]
+    runs-on: macOS-11.0
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install Dependencies
+        env:
+          COMPILER: clang
+        run: .ci/install.sh
+      - name: Build
+        env:
+          COMPILER: clang
+          BUILD_TYPE: Release
+          BUILD_DARTPY: ON
+        run: sudo -E .ci/script.sh
+
   windows_2019_msvc:
     name: Windows [MSVC|Release]
     runs-on: windows-2019
