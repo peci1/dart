@@ -54,7 +54,7 @@ CompositeTrackingAspect<CompositeType>::CompositeTrackingAspect()
 template <class CompositeType>
 CompositeType* CompositeTrackingAspect<CompositeType>::getComposite()
 {
-  return mComposite;
+  return dynamic_cast<CompositeType*>(mComposite);
 }
 
 //==============================================================================
@@ -62,7 +62,7 @@ template <class CompositeType>
 const CompositeType* CompositeTrackingAspect<CompositeType>::getComposite()
     const
 {
-  return mComposite;
+  return dynamic_cast<const CompositeType*>(mComposite);
 }
 
 //==============================================================================
@@ -79,7 +79,7 @@ void CompositeTrackingAspect<CompositeType>::setComposite(
 {
   assert(nullptr == mComposite);
 
-  mComposite = dynamic_cast<CompositeType*>(newComposite);
+  mComposite = newComposite;
   // Note: Derived classes should be responsible for handling the case in which
   // the new composite type does not match the expected type. We should not
   // assume here that it is an error.

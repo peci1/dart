@@ -150,7 +150,7 @@ protected:
   void loseComposite(Composite* oldComposite) override;
 
   /// Pointer to the current Composite of this Aspect
-  CompositeType* mComposite;
+  Composite* mComposite;
 };
 
 } // namespace common
