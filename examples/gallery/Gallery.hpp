@@ -94,7 +94,7 @@ public:
   bool isGridVisible() const;
 
 protected:
-  ::osg::ref_ptr<gui::osg::ImGuiViewer> mViewer;
+  gui::osg::ImGuiViewer* mViewer;
 
   std::shared_ptr<MainMenuWidget> mMainMenuWidget;
   std::shared_ptr<ProjectExplorerWidget> mProjectExplorerWidget;

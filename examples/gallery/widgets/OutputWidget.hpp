@@ -56,7 +56,7 @@ public:
 
 protected:
   Gallery* mGallery;
-  ::osg::ref_ptr<gui::osg::ImGuiViewer> mViewer;
+  gui::osg::ImGuiViewer* mViewer;
 
 private:
   ImGuiTextBuffer Buf;
