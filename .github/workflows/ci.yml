@@ -15,7 +15,11 @@ env:
   # Hosted on: https://hub.docker.com/repository/docker/dartsim/dart-dev
   DART_DEV_IMAGE: dartsim/dart-dev
   UBUNTU_BUILD_CMD: |
+    if [ "$ENABLE_CODECOV" = "ON" ]; then
+      ci_env=`bash <(curl -s https://codecov.io/env)`
+    fi
     docker run \
+      $ci_env -e CI=true \
       --platform $PLATFORM \
       -v $GITHUB_WORKSPACE:$GITHUB_WORKSPACE \
       --env-file ./.ci/docker/env.list \
@@ -58,6 +62,7 @@ jobs:
       BUILD_TESTS: "${{ matrix.distro == 'bionic' && 'OFF' || 'ON' }}"
       BUILD_BENCHMARKS:  "${{ matrix.distro == 'bionic' && 'OFF' || 'ON' }}"
       CHECK_FORMAT: "${{ matrix.distro == 'focal' && 'ON' || 'OFF' }}"
+      ENABLE_CODECOV: "${{ matrix.distro == 'focal' && matrix.build_type == 'Debug' && 'ON' || 'OFF' }}"
       DART_BUILD_PYTHON_BINDING: ON
     steps:
       # https://github.com/marketplace/actions/docker-setup-qemu
