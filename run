@@ -120,7 +120,9 @@ build() {
     --env BUILD_TYPE=Debug \
     --env CMAKE_BUILD_DIR="$build_dir" \
     --env BUILD_TESTS=ON \
+    --env BUILD_BENCHMARKS=ON \
     --env BUILD_PYTHON_BINDING=ON \
+    --env RUN_MEMCHECK=ON \
     --env COMPILER=$compiler \
     -t $image_name:$ubuntu_name-$dart_version$sha_arg \
     /bin/bash -c "cd /opt/dart && ./.ci/build.sh -j$num_cores"

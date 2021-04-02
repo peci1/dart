@@ -47,6 +47,16 @@ if [ -z "$BUILD_TESTS" ]; then
   BUILD_TESTS=ON
 fi
 
+if [ -z "$BUILD_BENCHMARKS" ]; then
+  echo "Info: Environment variable BUILD_BENCHMARKS is unset. Using ON by default"
+  BUILD_BENCHMARKS=ON
+fi
+
+if [ -z "$RUN_MEMCHECK" ]; then
+  echo "Info: Environment variable RUN_MEMCHECK is unset. Using OFF by default"
+  RUN_MEMCHECK=OFF
+fi
+
 if [ -z "$BUILD_PYTHON_BINDING" ]; then
   echo "Info: Environment variable BUILD_PYTHON_BINDING is unset. Using OFF by default."
   BUILD_PYTHON_BINDING=OFF
@@ -112,6 +122,7 @@ fi
 cmake $BUILD_DIR \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DDART_BUILD_TESTS=$BUILD_TESTS \
+  -DDART_BUILD_BENCHMARKS=$BUILD_BENCHMARKS \
   -DDART_BUILD_PYTHON_BINDING=$BUILD_PYTHON_BINDING \
   ${install_prefix_option}
 
@@ -121,6 +132,12 @@ fi
 
 # C++: build, test, and install
 make -s -j$num_threads all
+if [ "$BUILD_TESTS" = "ON" ]; then
+  ctest --output-on-failure -j$num_threads
+  if [ "$RUN_MEMCHECK" = "ON" ]; then
+    ctest --output-on-failure -j$num_threads -T memcheck
+  fi
+fi
 
 # Install dartpy8
 if [ "$BUILD_PYTHON_BINDING" = "ON" ]; then
