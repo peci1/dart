@@ -22,6 +22,9 @@ project(dart8 VERSION ${DART_VERSION} LANGUAGES CXX)
 # Add <project>/cmake to CMAKE_MODULE_PATH
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
+# Include utility modules
+include(dart_functions)
+
 # ==============================================================================
 # Build Options
 # ==============================================================================
@@ -45,5 +48,10 @@ endif()
 # ==============================================================================
 # C++ Project
 # ==============================================================================
-
 add_subdirectory(cpp)
+
+# ==============================================================================
+# Code Formatting
+# ==============================================================================
+dart_clang_format_setup(VERSION 10)
+dart_clang_format_add_targets()

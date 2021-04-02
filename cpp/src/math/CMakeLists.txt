@@ -35,3 +35,6 @@ target_compile_features(${target_name} PUBLIC cxx_std_17)
 
 # Set compile definitions
 target_compile_definitions(${target_name} PUBLIC)
+
+# Format files
+dart_clang_format_add_sources(${headers} ${sources})
