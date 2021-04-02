@@ -42,16 +42,6 @@ if [ -z "$BUILD_TYPE" ]; then
   exit 1
 fi
 
-if [ -z "$BUILD_TEST" ]; then
-  echo "Info: Environment variable BUILD_TEST is unset. Using ON by default"
-  BUILD_TEST=ON
-fi
-
-if [ -z "$BUILD_PYTHON" ]; then
-  echo "Info: Environment variable BUILD_PYTHON is unset. Using OFF by default."
-  BUILD_PYTHON=OFF
-fi
-
 if [ -z "$COMPILER" ]; then
   echo "Info: Environment variable COMPILER is unset. Using gcc by default."
   COMPILER=gcc
@@ -67,9 +57,9 @@ if [ -z "$CMAKE_BUILD_DIR" ]; then
   CMAKE_BUILD_DIR=.build
 fi
 
-if [ -z "$ENABLE_CODECOV" ]; then
-  echo "Info: Environment variable ENABLE_CODECOV is unset. Using OFF by default."
-  ENABLE_CODECOV=OFF
+if [ -z "$CHECK_FORMAT" ]; then
+  echo "Info: Environment variable CHECK_FORMAT is unset. Using OFF by default."
+  CHECK_FORMAT=OFF
 fi
 
 # Set number of threads for parallel build
@@ -112,6 +102,10 @@ fi
 cmake $BUILD_DIR \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   ${install_prefix_option}
+
+if [ "$CHECK_FORMAT" = "ON" ]; then
+  make clang-format-check
+fi
 
 # C++: build, test, and install
 make -s -j$num_threads all

@@ -55,6 +55,7 @@ jobs:
       DOCKER_TAG: ubuntu-${{ matrix.distro }}-v8.0
       COMPILER: ${{ matrix.compiler }}
       BUILD_TYPE: ${{ matrix.build_type }}
+      CHECK_FORMAT: ON
     steps:
       # https://github.com/marketplace/actions/docker-setup-qemu
       - name: Set up QEMU
