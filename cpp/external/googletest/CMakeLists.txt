@@ -1,3 +1,5 @@
+# Copyright (c) 2011-2021, The DART development contributors
+
 include(FetchContent)
 
 # NOTE: Find PythonInterp for Python 3 before GoogleTest finds it for Python 2

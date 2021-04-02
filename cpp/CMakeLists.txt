@@ -15,3 +15,10 @@ add_subdirectory(src)
 if(DART_BUILD_TESTS)
   add_subdirectory(test)
 endif()
+
+# ==============================================================================
+# Benchmark
+# ==============================================================================
+if(DART_BUILD_BENCHMARKS)
+  add_subdirectory(benchmark)
+endif()

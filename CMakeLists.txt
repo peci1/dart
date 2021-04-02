@@ -30,8 +30,9 @@ include(dart_functions)
 # ==============================================================================
 
 option(DART_VERBOSE "Print detailed build settings" OFF)
-option(DART_BUILD_PYTHON_BINDING "Build Python bindings" OFF)
 option(DART_BUILD_TESTS "Build tests" ON)
+option(DART_BUILD_BENCHMARKS "Build benchmarks" ON)
+option(DART_BUILD_PYTHON_BINDING "Build Python bindings" OFF)
 
 # ==============================================================================
 # Find Dependencies
