@@ -4,6 +4,27 @@ set(DART_CPP_PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(DART_CPP_PROJECT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # ==============================================================================
+# CodeCov settings
+# ==============================================================================
+# Code Coverage Configuration
+add_library(coverage_config INTERFACE)
+
+if(DART_ENABLE_CODECOV)
+  # Add required flags (GCC & LLVM/Clang)
+  target_compile_options(
+    coverage_config
+    INTERFACE -O0 # no optimization
+              -g # generate debug info
+              --coverage # sets all required flags
+  )
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+    target_link_options(coverage_config INTERFACE --coverage)
+  else()
+    target_link_libraries(coverage_config INTERFACE --coverage)
+  endif()
+endif()
+
+# ==============================================================================
 # Add Source Directories
 # ==============================================================================
 add_subdirectory(external)

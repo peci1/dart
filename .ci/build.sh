@@ -62,6 +62,11 @@ if [ -z "$BUILD_PYTHON_BINDING" ]; then
   BUILD_PYTHON_BINDING=OFF
 fi
 
+if [ -z "$ENABLE_CODECOV" ]; then
+  echo "Info: Environment variable ENABLE_CODECOV is unset. Using OFF by default."
+  ENABLE_CODECOV=OFF
+fi
+
 if [ -z "$COMPILER" ]; then
   echo "Info: Environment variable COMPILER is unset. Using gcc by default."
   COMPILER=gcc
@@ -124,6 +129,7 @@ cmake $BUILD_DIR \
   -DDART_BUILD_TESTS=$BUILD_TESTS \
   -DDART_BUILD_BENCHMARKS=$BUILD_BENCHMARKS \
   -DDART_BUILD_PYTHON_BINDING=$BUILD_PYTHON_BINDING \
+  -DDART_ENABLE_CODECOV=$ENABLE_CODECOV \
   ${install_prefix_option}
 
 if [ "$CHECK_FORMAT" = "ON" ]; then
@@ -142,4 +148,17 @@ fi
 # Install dartpy8
 if [ "$BUILD_PYTHON_BINDING" = "ON" ]; then
   make install-dartpy8
+fi
+
+# Code coverage
+if [ "$ENABLE_CODECOV" = "ON" ]; then
+  lcov --directory . --capture --output-file coverage.info
+  # filter out system and extra files.
+  # To also not include test code in coverage add them with full path to the patterns: '*/tests/*'
+  lcov --remove coverage.info '/usr/*' "${HOME}"'/.cache/*' --output-file coverage.info
+  # output coverage data for debugging (optional)
+  lcov --list coverage.info
+  # Uploading to CodeCov
+  # '-f' specifies file(s) to use and disables manual coverage gathering and file search which has already been done above
+  bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
 fi

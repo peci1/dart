@@ -28,7 +28,7 @@ if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
   target_link_libraries(${target_name} PUBLIC "stdc++fs")
 endif()
 target_link_libraries(
-  ${target_name} PUBLIC ${dependency_modules} ${CMAKE_DL_LIBS}
+  ${target_name} PUBLIC ${dependency_modules} ${CMAKE_DL_LIBS} coverage_config
 )
 
 # Set compile features
