@@ -119,6 +119,7 @@ build() {
     --volume $(pwd):/opt/dart \
     --env BUILD_TYPE=Debug \
     --env CMAKE_BUILD_DIR="$build_dir" \
+    --env BUILD_TESTS=ON \
     --env BUILD_PYTHON_BINDING=ON \
     --env COMPILER=$compiler \
     -t $image_name:$ubuntu_name-$dart_version$sha_arg \

@@ -31,6 +31,7 @@ include(dart_functions)
 
 option(DART_VERBOSE "Print detailed build settings" OFF)
 option(DART_BUILD_PYTHON_BINDING "Build Python bindings" OFF)
+option(DART_BUILD_TESTS "Build tests" ON)
 
 # ==============================================================================
 # Find Dependencies
@@ -49,8 +50,19 @@ endif()
 # ==============================================================================
 # C++ Project
 # ==============================================================================
+
+# Enable 'test' target
+if(DART_BUILD_TESTS)
+  include(CTest)
+  enable_testing()
+endif()
+
+# Include the C++ project directory
 add_subdirectory(cpp)
 
+# ==============================================================================
+# Python Binding
+# ==============================================================================
 if(DART_BUILD_PYTHON_BINDING)
   add_subdirectory(python)
 endif()
