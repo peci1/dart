@@ -115,3 +115,8 @@ fi
 
 # C++: build, test, and install
 make -s -j$num_threads all
+
+# Install dartpy8
+if [ "$BUILD_PYTHON_BINDING" = "ON" ]; then
+  make install-dartpy8
+fi
