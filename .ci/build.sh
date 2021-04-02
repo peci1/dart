@@ -42,6 +42,11 @@ if [ -z "$BUILD_TYPE" ]; then
   exit 1
 fi
 
+if [ -z "$BUILD_PYTHON_BINDING" ]; then
+  echo "Info: Environment variable BUILD_PYTHON_BINDING is unset. Using OFF by default."
+  BUILD_PYTHON_BINDING=OFF
+fi
+
 if [ -z "$COMPILER" ]; then
   echo "Info: Environment variable COMPILER is unset. Using gcc by default."
   COMPILER=gcc
@@ -101,6 +106,7 @@ if [ "$OSTYPE" = "linux-gnu" ]; then
 fi
 cmake $BUILD_DIR \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DDART_BUILD_PYTHON_BINDING=$BUILD_PYTHON_BINDING \
   ${install_prefix_option}
 
 if [ "$CHECK_FORMAT" = "ON" ]; then

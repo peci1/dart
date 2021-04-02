@@ -56,6 +56,7 @@ jobs:
       COMPILER: ${{ matrix.compiler }}
       BUILD_TYPE: ${{ matrix.build_type }}
       CHECK_FORMAT: ON
+      DART_BUILD_PYTHON_BINDING: ON
     steps:
       # https://github.com/marketplace/actions/docker-setup-qemu
       - name: Set up QEMU
