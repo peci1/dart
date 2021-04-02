@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+set -e
+
+image_name=dartsim/dart-dev
+dart_version=v8.0
+
+ubuntu_name=()
+compiler=gcc
+sha256=""
+num_cores=1
+
+help() {
+  cat <<EOF
+  Usage: ${0##*/} <routine> [<options>...]
+EOF
+}
+
+if [ "$#" -lt 1 ]; then
+  help
+  exit
+else
+  if [[ "$1" = -* ]]; then
+    help
+    exit
+  else
+    routine=$1
+    shift
+  fi
+fi
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  key="$1"
+
+  case $key in
+  -n | --name)
+    ubuntu_name=("$2")
+    shift # past argument
+    shift # past value
+    ;;
+  -s | --sha256)
+    sha256=("$2")
+    shift # past argument
+    shift # past value
+    ;;
+  --compiler)
+    compiler=("$2")
+    shift # past argument
+    shift # past value
+    ;;
+  -j)
+    num_cores=("$2")
+    shift # past argument
+    shift # past value
+    ;;
+  *)                   # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift              # past argument
+    ;;
+  esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+code_coverage_args=""
+if [ "$code_coverage" = "true" ]; then
+  code_coverage_args="$code_coverage_args $(bash <(curl -s https://codecov.io/env))"
+  code_coverage_args="$code_coverage_args --env ENABLE_CODECOV=ON"
+fi
+
+if [ "$run_memcheck" = "true" ]; then
+  code_coverage_args="$code_coverage_args --env RUN_MEMCHECK=ON"
+else
+  code_coverage_args="$code_coverage_args --env RUN_MEMCHECK=OFF"
+fi
+
+launch() {
+  if [ -z $sha256 ]; then
+    sha_arg=""
+  else
+    sha_arg="@sha256:$sha256"
+  fi
+
+  echo "==================================================="
+  echo " Launching $image_name:$ubuntu_name-$dart_version$sha_arg..."
+  echo "==================================================="
+
+  docker run \
+    -it \
+    $code_coverage_args \
+    --privileged \
+    --volume $(pwd):/opt/dart \
+    -t $image_name:$ubuntu_name-$dart_version$sha_arg \
+    /bin/bash
+
+  echo "Done"
+  echo ""
+}
+
+build() {
+  if [ -z $sha256 ]; then
+    sha_arg=""
+    build_dir=.build/$ubuntu_name-$dart_version-$compiler
+  else
+    sha_arg="@sha256:$sha256"
+    build_dir=.build/$ubuntu_name-$dart_version-$compiler-$sha256
+  fi
+
+  echo "==================================================="
+  echo " Building $image_name:$ubuntu_name-$dart_version$sha_arg..."
+  echo "==================================================="
+
+  # todo: make BUILD_TYPE and ENABLE_CODECOV configurable
+  # todo: check if CODECOV_TOKEN is set when code_coverage==true
+  docker run \
+    -i \
+    $code_coverage_args \
+    --privileged \
+    --platform linux/amd64 \
+    --volume $(pwd):/opt/dart \
+    --env BUILD_TYPE=Debug \
+    --env CMAKE_BUILD_DIR="$build_dir" \
+    --env COMPILER=$compiler \
+    -t $image_name:$ubuntu_name-$dart_version$sha_arg \
+    /bin/bash -c "cd /opt/dart && ./.ci/build.sh -j$num_cores"
+
+  echo "Done"
+  echo ""
+}
+
+# Run the selected routine
+"$routine"
