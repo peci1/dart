@@ -17,7 +17,7 @@ endif()
 
 # Keep the version v0.0.Z until the first release to the public
 set(DART_VERSION "8.0.0")
-project(dart8 VERSION ${DART_VERSION} LANGUAGES CXX)
+project(dart VERSION ${DART_VERSION} LANGUAGES CXX)
 
 # Add <project>/cmake to CMAKE_MODULE_PATH
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")

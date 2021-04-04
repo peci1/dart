@@ -60,7 +60,7 @@ jobs:
       COMPILER: ${{ matrix.compiler }}
       BUILD_TYPE: ${{ matrix.build_type }}
       BUILD_TESTS: "${{ matrix.distro == 'bionic' && 'OFF' || 'ON' }}"
-      BUILD_BENCHMARKS:  "${{ matrix.distro == 'bionic' && 'OFF' || 'ON' }}"
+      BUILD_BENCHMARKS: "${{ (matrix.distro == 'focal' && matrix.platform == 'linux/amd64' && matrix.build_type == 'Release') && 'ON' || 'OFF' }}"
       CHECK_FORMAT: "${{ matrix.distro == 'focal' && 'ON' || 'OFF' }}"
       ENABLE_CODECOV: "${{ matrix.distro == 'focal' && matrix.build_type == 'Debug' && 'ON' || 'OFF' }}"
       DART_BUILD_PYTHON_BINDING: ON
@@ -75,16 +75,20 @@ jobs:
       - name: Build
         run: ${{ env.UBUNTU_BUILD_CMD }}
 
-  catalina_clang_release:
-    name: macOS 10.15 [Clang]
+  macos_clang_release:
+    name: macOS
     runs-on: macos-10.15
     strategy:
       fail-fast: false
       matrix:
+        compiler: [clang]
         build_type: [Debug, Release]
     env:
-      COMPILER: clang
+      COMPILER: ${{ matrix.compiler }}
       BUILD_TYPE: ${{ matrix.build_type }}
+      BUILD_TESTS: ON
+      BUILD_BENCHMARKS: "${{ matrix.build_type == 'Release' && 'ON' || 'OFF' }}"
+      DART_BUILD_PYTHON_BINDING: ON
     steps:
       - uses: actions/checkout@v2
       - name: Install Dependencies
@@ -93,12 +97,19 @@ jobs:
         run: sudo -E ./.ci/build.sh
 
   windows_2019_msvc:
-    name: Windows [MSVC|Release]
+    name: Windows
     runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
     env:
-      BUILD_TYPE: Release
+      BUILD_TYPE: ${{ matrix.build_type }}
       VCPKG_ROOT: "C:/dartsim/vcpkg"
       VCPKG_BUILD_TAG: v0.2.0-70f192e
+      BUILD_TESTS: ON
+      BUILD_BENCHMARKS: "${{ matrix.build_type == 'Release' && 'ON' || 'OFF' }}"
+      DART_BUILD_PYTHON_BINDING: ON
     steps:
       - uses: actions/checkout@v2
       - name: Install Dependencies
@@ -116,4 +127,5 @@ jobs:
           cmake .. -G "Visual Studio 16 2019" -A x64 -Wno-dev ^
             -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
             -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
-          cmake --build . --target ALL_BUILD --parallel
+          cmake --build . --config %BUILD_TYPE% --target ALL_BUILD --parallel
+          ctest --output-on-fauilure -C %BUILD_TYPE%

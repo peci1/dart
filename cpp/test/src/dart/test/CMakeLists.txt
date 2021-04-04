@@ -1,14 +1,12 @@
 # Copyright (c) 2011-2021, The DART development contributors
 
-# Set target name
-set(module_name common)
+set(module_name test)
 set(target_name ${PROJECT_NAME}-${module_name})
-set(dependency_modules)
+set(dependency_modules ${PROJECT_NAME}-common ${PROJECT_NAME}-math)
 
 # Get header and source files
-file(
-  GLOB_RECURSE headers
-  "${DART_CPP_PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/${module_name}/*.hpp"
+file(GLOB_RECURSE headers
+     "${DART_CPP_PROJECT_SOURCE_DIR}/test/src/dart/${module_name}/*.hpp"
 )
 file(GLOB_RECURSE sources "*.cpp")
 
@@ -18,8 +16,8 @@ add_library(${target_name} ${headers} ${sources})
 # Set include directory
 target_include_directories(
   ${target_name}
-  PUBLIC $<BUILD_INTERFACE:${DART_CPP_PROJECT_SOURCE_DIR}/include>
-         $<BUILD_INTERFACE:${DART_CPP_PROJECT_BINARY_DIR}/include>
+  PUBLIC $<BUILD_INTERFACE:${DART_CPP_PROJECT_SOURCE_DIR}/test/src>
+         $<BUILD_INTERFACE:${DART_CPP_PROJECT_BINARY_DIR}/test/src>
          $<INSTALL_INTERFACE:include>
 )
 
@@ -28,7 +26,7 @@ if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
   target_link_libraries(${target_name} PUBLIC "stdc++fs")
 endif()
 target_link_libraries(
-  ${target_name} PUBLIC ${dependency_modules} ${CMAKE_DL_LIBS} coverage_config
+  ${target_name} PUBLIC ${dependency_modules} ${CMAKE_DL_LIBS}
 )
 
 # Set compile features

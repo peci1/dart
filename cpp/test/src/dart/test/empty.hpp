@@ -33,9 +33,9 @@
 #pragma once
 
 namespace dart {
-namespace math {
+namespace test {
 
-//
+void foo();
 
-} // namespace math
+} // namespace test
 } // namespace dart

@@ -356,3 +356,109 @@ function(dart_build_benchmarks)
   dart_clang_format_add_sources(${dart_build_benchmarks_SOURCES})
 
 endfunction()
+
+# ==============================================================================
+# cmake-format: off
+# Generate header file.
+# Usage:
+#   dart_generate_meta_header()
+# cmake-format: on
+# ==============================================================================
+function(dart_generate_meta_header)
+  set(prefix dart_generate_meta_header)
+  set(options)
+  set(oneValueArgs DESTINATION PREFIX_TO_REMOVE)
+  set(multiValueArgs HEADERS)
+  cmake_parse_arguments(
+    "${prefix}" "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
+  )
+
+  if(NOT dart_generate_meta_header_DESTINATION)
+    message(FATAL_ERROR "DESTINATION must be specified")
+  endif()
+
+  set(destination ${dart_generate_meta_header_DESTINATION})
+  if(NOT IS_ABSOLUTE ${destination})
+    set(destination ${CMAKE_CURRENT_BINARY_DIR}/${destination})
+  endif()
+
+  file(WRITE ${destination} "// Automatically generated file by CMake\n\n")
+  foreach(header ${dart_generate_meta_header_HEADERS})
+    if(IS_ABSOLUTE ${header})
+      string(REPLACE ${dart_generate_meta_header_PREFIX_TO_REMOVE} "" header
+                     ${header}
+      )
+    endif()
+    file(APPEND ${destination} "#include \"${header}\"\n")
+  endforeach()
+endfunction()
+
+# ==============================================================================
+# cmake-format: off
+# Generate header file.
+# Usage:
+#   dart_add_module(...)
+# cmake-format: on
+# ==============================================================================
+function(dart_add_module)
+  set(prefix dart_add_module)
+  set(options GENERATE_META_HEADER)
+  set(oneValueArgs MODULE_NAME TARGET_NAME PROJECT_SOURCE_DIR
+                   PROJECT_BINARY_DIR
+  )
+  set(multiValueArgs HEADERS SOURCES PUBLIC_LINK_LIBRARIES
+                     PUBLIC_COMPILE_FEATURES PUBLIC_COMPILE_DEFINITIONS
+  )
+  cmake_parse_arguments(
+    "${prefix}" "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
+  )
+
+  # Shorter variable names for readability
+  set(project_source_dir ${dart_add_module_PROJECT_SOURCE_DIR})
+  set(project_binary_dir ${dart_add_module_PROJECT_BINARY_DIR})
+  set(module_name ${dart_add_module_MODULE_NAME})
+  set(target_name ${dart_add_module_TARGET_NAME})
+  set(headers ${dart_add_module_HEADERS})
+  set(sources ${dart_add_module_SOURCES})
+  set(public_link_libraries ${dart_add_module_PUBLIC_LINK_LIBRARIES})
+  set(public_compile_features ${dart_add_module_PUBLIC_COMPILE_FEATURES})
+  set(public_compile_definitions ${dart_add_module_PUBLIC_COMPILE_DEFINITIONS})
+
+  # Add library
+  add_library(${target_name} ${headers} ${sources})
+
+  # Set include directory
+  target_include_directories(
+    ${target_name}
+    PUBLIC $<BUILD_INTERFACE:${project_source_dir}/src>
+           $<BUILD_INTERFACE:${project_binary_dir}/src>
+           $<INSTALL_INTERFACE:include>
+  )
+
+  # Set link libraries
+  target_link_libraries(${target_name} PUBLIC ${public_link_libraries})
+
+  # Set compile features
+  target_compile_features(${target_name} PUBLIC ${public_compile_features})
+
+  # Set compile definitions
+  target_compile_definitions(
+    ${target_name} PUBLIC ${public_compile_definitions}
+  )
+
+  # Format files
+  dart_clang_format_add_sources(${headers} ${sources})
+
+  # Generate all.hpp file
+  if(dart_add_module_GENERATE_META_HEADER)
+    dart_generate_meta_header(
+      DESTINATION "all.hpp" HEADERS ${headers} PREFIX_TO_REMOVE
+                                    "${project_source_dir}/src/"
+    )
+  endif()
+
+  set_property(
+    GLOBAL APPEND PROPERTY DART_CPP_BUILDING_MODULES "${module_name}"
+  )
+
+endfunction()

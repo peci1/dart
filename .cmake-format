@@ -23,6 +23,23 @@ parse:
         LINK_LIBRARIES: "*"
         LINK_DART_LIBRARIES: "*"
         TARGET_PREFIX: "*"
+    dart_generate_meta_header:
+      kwargs:
+        DESTINATION: "*"
+        HEADERS: "*"
+    dart_add_module:
+      flags:
+        - GENERATE_META_HEADER
+      kwargs:
+        MODULE_NAME: "*"
+        TARGET_NAME: "*"
+        PROJECT_SOURCE_DIR: "*"
+        PROJECT_BINARY_DIR: "*"
+        HEADERS: "*"
+        SOURCES: "*"
+        PUBLIC_LINK_LIBRARIES: "*"
+        PUBLIC_COMPILE_FEATURES: "*"
+        PUBLIC_COMPILE_DEFINITIONS: "*"
 
   _help_override_spec:
     - Override configurations per-command where available

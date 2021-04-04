@@ -30,12 +30,15 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "dart8/common/empty.hpp"
+#include "dart/math/empty.hpp"
 
 namespace dart {
-namespace common {
+namespace math {
 
-//
+//==============================================================================
+void foo() {
+  // Do nothing
+}
 
-} // namespace common
+} // namespace math
 } // namespace dart
