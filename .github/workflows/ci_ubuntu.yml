@@ -1,4 +1,4 @@
-name: CI
+name: CI Ubuntu
 
 on:
   push:
@@ -74,58 +74,3 @@ jobs:
         run: docker pull ${{ env.DART_DEV_IMAGE }}:${{ env.DOCKER_TAG }}
       - name: Build
         run: ${{ env.UBUNTU_BUILD_CMD }}
-
-  macos_clang_release:
-    name: macOS
-    runs-on: macos-10.15
-    strategy:
-      fail-fast: false
-      matrix:
-        compiler: [clang]
-        build_type: [Debug, Release]
-    env:
-      COMPILER: ${{ matrix.compiler }}
-      BUILD_TYPE: ${{ matrix.build_type }}
-      BUILD_TESTS: ON
-      BUILD_BENCHMARKS: "${{ matrix.build_type == 'Release' && 'ON' || 'OFF' }}"
-      BUILD_PYTHON_BINDING: ON
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Dependencies
-        run: ./.ci/install_deps_osx.sh
-      - name: Build
-        run: sudo -E ./.ci/build.sh
-
-  windows_2019_msvc:
-    name: Windows
-    runs-on: windows-2019
-    strategy:
-      fail-fast: false
-      matrix:
-        build_type: [Debug, Release]
-    env:
-      BUILD_TYPE: ${{ matrix.build_type }}
-      VCPKG_ROOT: "C:/dartsim/vcpkg"
-      VCPKG_BUILD_TAG: v0.3.0-2020.11-1
-      BUILD_TESTS: ON
-      BUILD_BENCHMARKS: "${{ matrix.build_type == 'Release' && 'ON' || 'OFF' }}"
-      BUILD_PYTHON_BINDING: ON
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Dependencies
-        shell: cmd
-        run: |
-          mkdir -p C:\dartsim
-          choco install -y wget
-          wget -q https://github.com/dartsim/vcpkg-build/releases/download/%VCPKG_BUILD_TAG%/vcpkg-dartsim-dependencies.zip
-          unzip -qq vcpkg-dartsim-dependencies.zip -d C:\dartsim
-      - name: Build
-        shell: cmd
-        run: |
-          mkdir build
-          cd build
-          cmake .. -G "Visual Studio 16 2019" -A x64 -Wno-dev ^
-            -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
-            -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake"
-          cmake --build . --config %BUILD_TYPE% --target ALL_BUILD --parallel
-          ctest --output-on-fauilure -C %BUILD_TYPE%
