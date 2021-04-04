@@ -145,9 +145,12 @@ if [ "$BUILD_TESTS" = "ON" ]; then
   fi
 fi
 
-# Install dartpy8
+# Build dartpy
 if [ "$BUILD_PYTHON_BINDING" = "ON" ]; then
+  make dartpy8
+  make test-dartpy8
   make install-dartpy8
+  python3 -c "import dartpy8"
 fi
 
 # Code coverage
