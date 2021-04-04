@@ -8,6 +8,7 @@ This project is written in C++17, and follows the CppCoreGuidelines. The source 
 
 | Build     | Status                                                                                                                                 |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Ubuntu    | [![CI Ubuntu](https://github.com/dartsim/dart/actions/workflows/ci_ubuntu.yml/badge.svg?branch=dart8%2Fmaster)](https://github.com/dartsim/dart/actions/workflows/ci_ubuntu.yml)    |
-| macOS     | [![CI macOS](https://github.com/dartsim/dart/actions/workflows/ci_macos.yml/badge.svg?branch=dart8%2Fmaster)](https://github.com/dartsim/dart/actions/workflows/ci_macos.yml)       |
-| Windows   | [![CI Windows](https://github.com/dartsim/dart/actions/workflows/ci_windows.yml/badge.svg?branch=dart8%2Fmaster)](https://github.com/dartsim/dart/actions/workflows/ci_windows.yml) |
+| Ubuntu     | [![CI Ubuntu](https://github.com/dartsim/dart/actions/workflows/ci_ubuntu.yml/badge.svg?branch=dart8%2Fmaster)](https://github.com/dartsim/dart/actions/workflows/ci_ubuntu.yml)    |
+| macOS      | [![CI macOS](https://github.com/dartsim/dart/actions/workflows/ci_macos.yml/badge.svg?branch=dart8%2Fmaster)](https://github.com/dartsim/dart/actions/workflows/ci_macos.yml)       |
+| Windows    | [![CI Windows](https://github.com/dartsim/dart/actions/workflows/ci_windows.yml/badge.svg?branch=dart8%2Fmaster)](https://github.com/dartsim/dart/actions/workflows/ci_windows.yml) |
+| DART image | [![Docker](https://github.com/dartsim/dart/actions/workflows/docker_image.yml/badge.svg?branch=dart8%2Fmaster)](https://github.com/dartsim/dart/actions/workflows/docker_image.yml) |
