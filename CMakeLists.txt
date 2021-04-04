@@ -29,11 +29,13 @@ include(dart_functions)
 # Build Options
 # ==============================================================================
 
-option(DART_VERBOSE "Print detailed build settings" OFF)
-option(DART_BUILD_TESTS "Build tests" ON)
-option(DART_BUILD_BENCHMARKS "Build benchmarks" ON)
-option(DART_BUILD_PYTHON_BINDING "Build Python bindings" ON)
-option(DART_ENABLE_CODECOV "Enable code coverage reporting using Codecov" OFF)
+dart_option(DART_VERBOSE "Print detailed build settings" OFF)
+dart_option(DART_BUILD_TESTS "Build tests" ON)
+dart_option(DART_BUILD_BENCHMARKS "Build benchmarks" ON)
+dart_option(DART_BUILD_PYTHON_BINDING "Build Python bindings" ON)
+dart_option(DART_ENABLE_CODECOV "Enable code coverage reporting using Codecov" OFF)
+
+dart_print_options()
 
 # ==============================================================================
 # Find Dependencies
