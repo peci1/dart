@@ -32,10 +32,12 @@
 
 #pragma once
 
+#include "dart/common/export.hpp"
+
 namespace dart {
 namespace common {
 
-void foo();
+void DART_COMMON_EXPORT foo();
 
 } // namespace common
 } // namespace dart

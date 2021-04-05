@@ -20,9 +20,9 @@ jobs:
       matrix:
         build_type: [Debug, Release]
         build_shared_libs: [OFF]
-        # include:
-        #   - build_type: Release
-        #     build_shared_libs: ON
+        include:
+          - build_type: Release
+            build_shared_libs: ON
     env:
       BUILD_TYPE: ${{ matrix.build_type }}
       VCPKG_ROOT: "C:/dartsim/vcpkg"

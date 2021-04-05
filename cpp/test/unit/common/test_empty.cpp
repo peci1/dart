@@ -32,7 +32,11 @@
 
 #include <gtest/gtest.h>
 
+#include "dart/common/all.hpp"
+
+using namespace dart;
+
 //==============================================================================
 TEST(EmptyTest, Empty) {
-  //
+  common::foo();
 }

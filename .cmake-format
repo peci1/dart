@@ -44,6 +44,12 @@ parse:
         PUBLIC_COMPILE_FEATURES: "*"
         PUBLIC_COMPILE_OPTIONS: "*"
         PUBLIC_COMPILE_DEFINITIONS: "*"
+    dart_generate_export_header:
+      kwargs:
+        BASE_NAME: "*"
+        TARGET_NAME: "*"
+        INCLUDE_DIR: "*"
+        EXPORT_FILE_NAME: "*"
 
   _help_override_spec:
     - Override configurations per-command where available
