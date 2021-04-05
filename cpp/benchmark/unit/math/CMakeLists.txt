@@ -9,7 +9,9 @@ if(test_files)
 endif()
 
 set(link_libraries)
-set(link_dart_libraries ${PROJECT_NAME}-common ${PROJECT_NAME}-math)
+set(link_dart_libraries ${PROJECT_NAME}${DART_VERSION_MAJOR}-common
+                        ${PROJECT_NAME}${DART_VERSION_MAJOR}-math
+)
 
 # Build the uint tests
 dart_build_benchmarks(

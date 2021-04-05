@@ -1,6 +1,22 @@
 # Copyright (c) 2011-2021, The DART development contributors
 
-# =========================================================================================
+# ==============================================================================
+function(dart_property_add property_name)
+  get_property(is_defined GLOBAL PROPERTY ${property_name} DEFINED)
+
+  if(NOT is_defined)
+    define_property(
+      GLOBAL PROPERTY ${property_name} BRIEF_DOCS "${property_name}"
+      FULL_DOCS "Global properties for ${property_name}"
+    )
+  endif()
+
+  foreach(item ${ARGN})
+    set_property(GLOBAL APPEND PROPERTY ${property_name} "${item}")
+  endforeach()
+endfunction()
+
+# ==============================================================================
 # dart_get_max(var [value1 value2...])
 function(dart_get_max var)
   set(first YES)
@@ -16,7 +32,7 @@ function(dart_get_max var)
   set(${var} ${choice} PARENT_SCOPE)
 endfunction()
 
-# =========================================================================================
+# ==============================================================================
 # dart_get_max_string_length(var [value1 value2...])
 function(dart_get_max_string_length var)
   foreach(item ${ARGN})
@@ -27,7 +43,7 @@ function(dart_get_max_string_length var)
   set(${var} ${choice} PARENT_SCOPE)
 endfunction()
 
-# =========================================================================================
+# ==============================================================================
 # cmake-format: off
 # dart_option(<variable> "<help_text>" <value>)
 # cmake-format: on
@@ -55,7 +71,7 @@ function(dart_option variable help_text default_value)
 
 endfunction()
 
-# =========================================================================================
+# ==============================================================================
 # cmake-format: off
 # dart_print_options()
 # cmake-format: on
@@ -101,7 +117,7 @@ function(dart_print_options)
   message(STATUS "")
 endfunction()
 
-# ===============================================================================
+# ==============================================================================
 function(dart_clang_format_setup)
   cmake_parse_arguments(
     CF_ARG # prefix
@@ -127,7 +143,7 @@ function(dart_clang_format_setup)
   message(STATUS "Found ${CF_NAME}.")
 endfunction()
 
-# ===============================================================================
+# ==============================================================================
 function(_property_add property_name)
   get_property(is_defined GLOBAL PROPERTY ${property_name} DEFINED)
   if(NOT is_defined)
@@ -141,7 +157,7 @@ function(_property_add property_name)
   endforeach()
 endfunction()
 
-# ===============================================================================
+# ==============================================================================
 function(dart_clang_format_add_sources)
   foreach(source ${ARGN})
     if(IS_ABSOLUTE "${source}")
@@ -164,7 +180,7 @@ function(dart_clang_format_add_sources)
   endforeach()
 endfunction()
 
-# ===============================================================================
+# ==============================================================================
 function(dart_clang_format_add_targets)
   get_property(formatting_files GLOBAL PROPERTY CLANG_FORMAT_FORMAT_FILES)
   list(LENGTH formatting_files formatting_files_length)
@@ -467,8 +483,8 @@ endfunction()
 # ==============================================================================
 function(dart_generate_meta_header)
   set(prefix dart_generate_meta_header)
-  set(options)
-  set(oneValueArgs DESTINATION PREFIX_TO_REMOVE)
+  set(options INSTALL)
+  set(oneValueArgs DESTINATION PREFIX_TO_REMOVE OUTPUT_VAR)
   set(multiValueArgs HEADERS)
   cmake_parse_arguments(
     "${prefix}" "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
@@ -492,6 +508,10 @@ function(dart_generate_meta_header)
     endif()
     file(APPEND ${destination} "#include \"${header}\"\n")
   endforeach()
+
+  if(dart_generate_meta_header_OUTPUT_VAR)
+    set(${dart_generate_meta_header_OUTPUT_VAR} ${destination} PARENT_SCOPE)
+  endif()
 endfunction()
 
 # ==============================================================================
@@ -507,8 +527,10 @@ function(dart_add_module)
   set(oneValueArgs MODULE_NAME TARGET_NAME PROJECT_SOURCE_DIR
                    PROJECT_BINARY_DIR
   )
-  set(multiValueArgs HEADERS SOURCES PUBLIC_LINK_LIBRARIES
-                     PUBLIC_COMPILE_FEATURES PUBLIC_COMPILE_DEFINITIONS
+  set(multiValueArgs
+      HEADERS SOURCES PUBLIC_LINK_LIBRARIES PUBLIC_LINK_OPTIONS
+      PUBLIC_COMPILE_FEATURES PUBLIC_COMPILE_OPTIONS PUBLIC_COMPILE_DEFINITIONS
+      PRIVATE_LINK_LIBRARIES
   )
   cmake_parse_arguments(
     "${prefix}" "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
@@ -522,8 +544,11 @@ function(dart_add_module)
   set(headers ${dart_add_module_HEADERS})
   set(sources ${dart_add_module_SOURCES})
   set(public_link_libraries ${dart_add_module_PUBLIC_LINK_LIBRARIES})
+  set(public_link_options ${dart_add_module_PUBLIC_LINK_OPTIONS})
   set(public_compile_features ${dart_add_module_PUBLIC_COMPILE_FEATURES})
+  set(public_compile_options ${dart_add_module_PUBLIC_COMPILE_OPTIONS})
   set(public_compile_definitions ${dart_add_module_PUBLIC_COMPILE_DEFINITIONS})
+  set(private_link_libraries ${dart_add_module_PRIVATE_LINK_LIBRARIES})
 
   # Add library
   add_library(${target_name} ${headers} ${sources})
@@ -533,14 +558,23 @@ function(dart_add_module)
     ${target_name}
     PUBLIC $<BUILD_INTERFACE:${project_source_dir}/src>
            $<BUILD_INTERFACE:${project_binary_dir}/src>
-           $<INSTALL_INTERFACE:include>
+           $<INSTALL_INTERFACE:include/${PROJECT_NAME}${DART_VERSION_MAJOR}>
   )
 
   # Set link libraries
   target_link_libraries(${target_name} PUBLIC ${public_link_libraries})
+  target_link_libraries(${target_name} PRIVATE ${private_link_libraries})
+
+  # Set link options
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+    target_link_options(${target_name} PUBLIC ${public_link_options})
+  endif()
 
   # Set compile features
   target_compile_features(${target_name} PUBLIC ${public_compile_features})
+
+  # Set compile options
+  target_compile_options(${target_name} PUBLIC ${public_compile_options})
 
   # Set compile definitions
   target_compile_definitions(
@@ -550,16 +584,138 @@ function(dart_add_module)
   # Format files
   dart_clang_format_add_sources(${headers} ${sources})
 
-  # Generate all.hpp file
+  # Generate meta header, all.hpp
   if(dart_add_module_GENERATE_META_HEADER)
     dart_generate_meta_header(
-      DESTINATION "all.hpp" HEADERS ${headers} PREFIX_TO_REMOVE
-                                    "${project_source_dir}/src/"
+      DESTINATION "all.hpp" HEADERS ${headers}
+      PREFIX_TO_REMOVE "${project_source_dir}/src/" OUTPUT_VAR dart_all_header
     )
   endif()
 
+  # Install meta header
+  install(
+    FILES ${dart_all_header}
+    DESTINATION
+      include/${PROJECT_NAME}${DART_VERSION_MAJOR}/${PROJECT_NAME}/${module_name}
+  )
+
+  # Install targets
+  # cmake-format: off
+  install(
+    TARGETS ${target_name}
+    EXPORT ${target_name}-targets
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+  # cmake-format: on
+  install(
+    EXPORT ${target_name}-targets
+    FILE ${target_name}-targets.cmake
+    DESTINATION
+      ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}${DART_VERSION_MAJOR}
+  )
+
+  # Register module
   set_property(
     GLOBAL APPEND PROPERTY DART_CPP_BUILDING_MODULES "${module_name}"
   )
 
+endfunction()
+
+# ==============================================================================
+# cmake-format: off
+# dart_build_target_in_source(target
+#   [LINK_LIBRARIES library1 ...])
+#   [COMPILE_FEATURES feature1 ...]
+#   [COMPILE_OPTIONS option1 ...]
+# )
+# cmake-format: on
+function(dart_build_target_in_source target)
+  set(prefix example)
+  set(options)
+  set(oneValueArgs)
+  set(multiValueArgs LINK_LIBRARIES COMPILE_FEATURES COMPILE_OPTIONS)
+  cmake_parse_arguments(
+    "${prefix}" "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
+  )
+
+  if(example_LINK_LIBRARIES)
+    foreach(dep_target ${example_LINK_LIBRARIES})
+      if(NOT TARGET ${dep_target})
+        if(DART_VERBOSE)
+          message(
+            WARNING
+              "Skipping ${target} because required target '${dep_target}' not found"
+          )
+        endif()
+        return()
+      endif()
+    endforeach()
+  endif()
+
+  file(GLOB srcs "*.cpp" "*.hpp")
+
+  add_executable(${target} ${srcs})
+
+  if(example_LINK_LIBRARIES)
+    foreach(dep_target ${example_LINK_LIBRARIES})
+      target_link_libraries(${target} ${dep_target})
+    endforeach()
+  endif()
+
+  if(example_COMPILE_FEATURES)
+    foreach(comple_feature ${example_COMPILE_FEATURES})
+      target_compile_features(${target} PUBLIC ${comple_feature})
+    endforeach()
+  endif()
+
+  if(example_COMPILE_OPTIONS)
+    foreach(comple_option ${example_COMPILE_OPTIONS})
+      target_compile_options(${target} PUBLIC ${comple_option})
+    endforeach()
+  endif()
+
+  set_target_properties(
+    ${target} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+
+  dart_clang_format_add_sources(${srcs})
+endfunction()
+
+# ==============================================================================
+function(dart_add_example)
+  dart_property_add(DART_EXAMPLES ${ARGN})
+endfunction(dart_add_example)
+
+# ==============================================================================
+# cmake-format: off
+# dart_build_example_in_source(target
+#   [LINK_LIBRARIES library1 ...])
+#   [COMPILE_FEATURES feature1 ...]
+#   [COMPILE_OPTIONS option1 ...]
+# )
+# cmake-format: on
+function(dart_build_example_in_source target)
+  dart_build_target_in_source(${target} ${ARGN})
+  dart_add_example(${target})
+endfunction()
+
+# ==============================================================================
+function(dart_add_tutorial)
+  dart_property_add(DART_TUTORIALS ${ARGN})
+endfunction(dart_add_tutorial)
+
+# ==============================================================================
+# cmake-format: off
+# dart_build_tutorial_in_source(target
+#   [LINK_LIBRARIES library1 ...])
+#   [COMPILE_FEATURES feature1 ...]
+#   [COMPILE_OPTIONS option1 ...]
+# )
+# cmake-format: on
+function(dart_build_tutorial_in_source target)
+  dart_build_target_in_source(${target} ${ARGN})
+  dart_add_tutorial(${target})
 endfunction()

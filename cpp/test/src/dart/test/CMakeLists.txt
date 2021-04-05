@@ -1,8 +1,10 @@
 # Copyright (c) 2011-2021, The DART development contributors
 
 set(module_name test)
-set(target_name ${PROJECT_NAME}-${module_name})
-set(dependency_modules ${PROJECT_NAME}-common ${PROJECT_NAME}-math)
+set(target_name ${PROJECT_NAME}${DART_VERSION_MAJOR}-${module_name})
+set(dependency_modules ${PROJECT_NAME}${DART_VERSION_MAJOR}-common
+                       ${PROJECT_NAME}${DART_VERSION_MAJOR}-math
+)
 
 # Get header and source files
 file(GLOB_RECURSE headers

@@ -57,8 +57,9 @@ target_include_directories(
 )
 
 target_link_libraries(
-  ${pybind_module} PUBLIC ${PROJECT_NAME}-common ${PROJECT_NAME}-math
-                          ${PYTHON_LIBRARIES}
+  ${pybind_module}
+  PUBLIC ${PROJECT_NAME}${DART_VERSION_MAJOR}-common
+         ${PROJECT_NAME}${DART_VERSION_MAJOR}-math ${PYTHON_LIBRARIES}
 )
 
 # Remove debug postfix for dartpy

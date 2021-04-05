@@ -87,6 +87,11 @@ if [ -z "$CHECK_FORMAT" ]; then
   CHECK_FORMAT=OFF
 fi
 
+if [ -z "$BUILD_SHARED_LIBS" ]; then
+  echo "Info: Environment variable BUILD_SHARED_LIBS is unset. Using OFF by default."
+  BUILD_SHARED_LIBS=OFF
+fi
+
 # Set number of threads for parallel build
 # Ref: https://unix.stackexchange.com/a/129401
 if [ "$OSTYPE" = "linux-gnu" ]; then
@@ -119,13 +124,16 @@ else
   echo "Info: Compiler isn't specified. Using the system default."
 fi
 
+mkdir -p $CMAKE_BUILD_DIR
+pushd $CMAKE_BUILD_DIR
+
 # Run CMake
-mkdir -p $CMAKE_BUILD_DIR && cd $CMAKE_BUILD_DIR
 if [ "$OSTYPE" = "linux-gnu" ]; then
   install_prefix_option="-DCMAKE_INSTALL_PREFIX=/usr/"
 fi
 cmake $BUILD_DIR \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DBUILD_SHARED_LIBS=$BUILD_SHARED_LIBS \
   -DDART_BUILD_TESTS=$BUILD_TESTS \
   -DDART_BUILD_BENCHMARKS=$BUILD_BENCHMARKS \
   -DDART_BUILD_PYTHON_BINDING=$BUILD_PYTHON_BINDING \
@@ -144,6 +152,14 @@ if [ "$BUILD_TESTS" = "ON" ]; then
     ctest --output-on-failure -j$num_threads -T memcheck
   fi
 fi
+make install
+
+# Bild an C++ example against installed DART
+mkdir -p .example_build
+pushd .example_build
+cmake $BUILD_DIR/cpp/example/empty
+make -j$num_threads
+popd
 
 # Build dartpy
 if [ "$BUILD_PYTHON_BINDING" = "ON" ]; then
@@ -165,3 +181,5 @@ if [ "$ENABLE_CODECOV" = "ON" ]; then
   # '-f' specifies file(s) to use and disables manual coverage gathering and file search which has already been done above
   bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
 fi
+
+popd

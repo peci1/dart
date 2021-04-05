@@ -7,7 +7,9 @@ if(test_files)
 endif()
 
 set(link_libraries)
-set(link_dart_libraries ${PROJECT_NAME}-common ${PROJECT_NAME}-test)
+set(link_dart_libraries ${PROJECT_NAME}${DART_VERSION_MAJOR}-common
+                        ${PROJECT_NAME}${DART_VERSION_MAJOR}-test
+)
 
 # Build the uint tests
 dart_build_tests(

@@ -2,7 +2,7 @@
 
 # Set module name
 set(module_name math)
-set(target_name dart-${module_name})
+set(target_name ${PROJECT_NAME}${DART_VERSION_MAJOR}-${module_name})
 
 # Get header and source files
 file(GLOB_RECURSE headers "*.hpp")
@@ -16,6 +16,6 @@ dart_add_module(
   PROJECT_BINARY_DIR ${DART_CPP_PROJECT_BINARY_DIR}
   HEADERS ${headers}
   SOURCES ${sources}
-  PUBLIC_LINK_LIBRARIES dart-common
+  PUBLIC_LINK_LIBRARIES ${PROJECT_NAME}${DART_VERSION_MAJOR}-common
   GENERATE_META_HEADER
 )

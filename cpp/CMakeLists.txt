@@ -4,27 +4,6 @@ set(DART_CPP_PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(DART_CPP_PROJECT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # ==============================================================================
-# CodeCov settings
-# ==============================================================================
-# Code Coverage Configuration
-add_library(coverage_config INTERFACE)
-
-if(DART_ENABLE_CODECOV)
-  # Add required flags (GCC & LLVM/Clang)
-  target_compile_options(
-    coverage_config
-    INTERFACE -O0 # no optimization
-              -g # generate debug info
-              --coverage # sets all required flags
-  )
-  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-    target_link_options(coverage_config INTERFACE --coverage)
-  else()
-    target_link_libraries(coverage_config INTERFACE --coverage)
-  endif()
-endif()
-
-# ==============================================================================
 # Add Source Directories
 # ==============================================================================
 add_subdirectory(external)
@@ -58,3 +37,34 @@ endif()
 if(DART_BUILD_BENCHMARKS)
   add_subdirectory(benchmark)
 endif()
+
+# ==============================================================================
+# Test
+# ==============================================================================
+if(DART_BUILD_EXAMPLES)
+  set(DART_EXAMPLE_PREFIX EXAMPLE_)
+  add_subdirectory(example)
+endif()
+
+# ==============================================================================
+# Install Config and Version Files
+# ==============================================================================
+get_property(DART_BUILT_MODULES GLOBAL PROPERTY DART_CPP_BUILDING_MODULES)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  ${PROJECT_NAME}${DART_VERSION_MAJOR}-config-version.cmake
+  VERSION ${DART_VERSION} COMPATIBILITY SameMajorVersion
+)
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${DART_VERSION_MAJOR}-config.cmake"
+  INSTALL_DESTINATION
+    ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}${DART_VERSION_MAJOR}
+)
+install(
+  FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${DART_VERSION_MAJOR}-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${DART_VERSION_MAJOR}-config-version.cmake"
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}${DART_VERSION_MAJOR}
+)

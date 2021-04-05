@@ -27,6 +27,8 @@ parse:
       kwargs:
         DESTINATION: "*"
         HEADERS: "*"
+        PREFIX_TO_REMOVE: "*"
+        OUTPUT_VAR: "*"
     dart_add_module:
       flags:
         - GENERATE_META_HEADER
@@ -38,7 +40,9 @@ parse:
         HEADERS: "*"
         SOURCES: "*"
         PUBLIC_LINK_LIBRARIES: "*"
+        PUBLIC_LINK_OPTIONS: "*"
         PUBLIC_COMPILE_FEATURES: "*"
+        PUBLIC_COMPILE_OPTIONS: "*"
         PUBLIC_COMPILE_DEFINITIONS: "*"
 
   _help_override_spec:
@@ -93,7 +97,7 @@ format:
   _help_max_pargs_hwrap:
     - If a positional argument group contains more than this many
     - arguments, then force it to a vertical layout.
-  max_pargs_hwrap: 16
+  max_pargs_hwrap: 8
 
   _help_max_rows_cmdline:
     - If a cmdline positional group consumes more than this many

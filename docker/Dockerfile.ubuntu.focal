@@ -17,7 +17,7 @@ RUN cd /opt/dart \
     -DDART_BUILD_PYTHON_BINDING=ON \
     -DDART_ENABLE_CODECOV=OFF \
     && make -j \
-    # && make install \
+    && make install \
     && make -j dartpy8 \
     && make install-dartpy8 \
     && cd .. \
