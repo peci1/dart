@@ -35,6 +35,7 @@
 
 #include "dart/collision/CollisionDetector.hpp"
 #include "dart/constraint/ConstraintBase.hpp"
+#include "dart/constraint/ContactSurface.hpp"
 #include "dart/math/MathTypes.hpp"
 
 namespace dart {
@@ -50,6 +51,10 @@ namespace constraint {
 class ContactConstraint : public ConstraintBase
 {
 public:
+  /// Constructor
+  ContactConstraint(collision::Contact& contact, double timeStep,
+                    const ContactSurfaceParams& contactSurfaceParams);
+
   /// Constructor
   ContactConstraint(collision::Contact& contact, double timeStep);
 
@@ -96,6 +101,7 @@ public:
 
   friend class ConstraintSolver;
   friend class ConstrainedGroup;
+  friend class DefaultContactSurfaceHandler;
 
 protected:
   //----------------------------------------------------------------------------
@@ -131,19 +137,6 @@ protected:
 
   // Documentation inherited
   bool isActive() const override;
-
-  static double computeFrictionCoefficient(
-      const dynamics::ShapeNode* shapeNode);
-  static double computeSecondaryFrictionCoefficient(
-      const dynamics::ShapeNode* shapeNode);
-  static double computeSlipCompliance(
-      const dynamics::ShapeNode* shapeNode);
-  static double computeSecondarySlipCompliance(
-      const dynamics::ShapeNode* shapeNode);
-  static Eigen::Vector3d computeWorldFirstFrictionDir(
-      const dynamics::ShapeNode* shapenode);
-  static double computeRestitutionCoefficient(
-      const dynamics::ShapeNode* shapeNode);
 
 private:
   using TangentBasisMatrix = Eigen::Matrix<double, 3, 2>;
@@ -198,7 +191,7 @@ private:
   /// Primary Coefficient of Friction
   double mFrictionCoeff;
 
-  /// Primary Coefficient of Friction
+  /// Secondary Coefficient of Friction
   double mSecondaryFrictionCoeff;
 
   /// Primary Coefficient of Slip Compliance
@@ -209,6 +202,12 @@ private:
 
   /// Coefficient of restitution
   double mRestitutionCoeff;
+
+  /// Velocity of the contact independent of friction
+  /// x = vel. in direction of contact normal
+  /// y = vel. in first friction direction
+  /// z = vel. in second friction direction
+  Eigen::Vector3d mContactSurfaceMotionVelocity;
 
   /// Whether this contact is self-collision.
   bool mIsSelfCollision;
