@@ -1,3 +1,9 @@
+dart6 (6.10.0~osrf6~2021-05-19~aa14d45de93afc814f19ccb6cedcd5157d1dbe6d) bionic; urgency=medium
+
+  * New OSRF release
+
+ -- Jose Luis Rivero <jrivero@osrfoundation.org>  Wed, 19 May 2021 18:46:40 +0200
+
 dart6 (6.10.0~osrf6~2020-09-16~12cdfb8c2c8f471800666d086c981dd448f0edc3) bionic; urgency=medium
 
   [ Addisu Taddese ]
