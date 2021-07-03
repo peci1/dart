@@ -59,7 +59,7 @@ public:
   ContactConstraint(collision::Contact& contact, double timeStep);
 
   /// Destructor
-  ~ContactConstraint() override = default;
+  ~ContactConstraint() override;
 
   //----------------------------------------------------------------------------
   // Property settings
@@ -138,6 +138,25 @@ protected:
   // Documentation inherited
   bool isActive() const override;
 
+  DART_DEPRECATED(6.10)
+  static double computeFrictionCoefficient(
+      const dynamics::ShapeNode* shapeNode);
+  DART_DEPRECATED(6.10)
+  static double computeSecondaryFrictionCoefficient(
+      const dynamics::ShapeNode* shapeNode);
+  DART_DEPRECATED(6.10)
+  static double computeSlipCompliance(
+      const dynamics::ShapeNode* shapeNode);
+  DART_DEPRECATED(6.10)
+  static double computeSecondarySlipCompliance(
+      const dynamics::ShapeNode* shapeNode);
+  DART_DEPRECATED(6.10)
+  static Eigen::Vector3d computeWorldFirstFrictionDir(
+      const dynamics::ShapeNode* shapenode);
+  DART_DEPRECATED(6.10)
+  static double computeRestitutionCoefficient(
+      const dynamics::ShapeNode* shapeNode);
+
 private:
   using TangentBasisMatrix = Eigen::Matrix<double, 3, 2>;
 
@@ -207,7 +226,8 @@ private:
   /// x = vel. in direction of contact normal
   /// y = vel. in first friction direction
   /// z = vel. in second friction direction
-  Eigen::Vector3d mContactSurfaceMotionVelocity;
+  // Moved to gContactSurfaceMotionVelocities in .cpp to preserve ABI
+  //Eigen::Vector3d mContactSurfaceMotionVelocity;
 
   /// Whether this contact is self-collision.
   bool mIsSelfCollision;

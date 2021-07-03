@@ -152,6 +152,8 @@ protected:
       const dynamics::ShapeNode* shapenode);
   static double computeRestitutionCoefficient(
       const dynamics::ShapeNode* shapeNode);
+
+  friend class ContactConstraint;
 };
 
 } // namespace constraint

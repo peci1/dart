@@ -33,6 +33,8 @@
 #include "dart/constraint/ContactConstraint.hpp"
 
 #include <iostream>
+#include <mutex>
+#include <unordered_map>
 
 #include "dart/external/odelcpsolver/lcp.h"
 
@@ -56,6 +58,10 @@ double ContactConstraint::mErrorAllowance = DART_ERROR_ALLOWANCE;
 double ContactConstraint::mErrorReductionParameter = DART_ERP;
 double ContactConstraint::mMaxErrorReductionVelocity = DART_MAX_ERV;
 double ContactConstraint::mConstraintForceMixing = DART_CFM;
+
+std::mutex gContactSurfaceMotionVelocitiesMutex;
+std::unordered_map<ContactConstraint*, Eigen::Vector3d>
+    gContactSurfaceMotionVelocities;
 
 //==============================================================================
 ContactConstraint::ContactConstraint(
@@ -126,8 +132,11 @@ ContactConstraint::ContactConstraint(
     mIsFrictionOn = false;
   }
 
-  mContactSurfaceMotionVelocity =
-      contactSurfaceParams.mContactSurfaceMotionVelocity;
+  {
+    std::lock_guard<std::mutex> lock(gContactSurfaceMotionVelocitiesMutex);
+    gContactSurfaceMotionVelocities[this] =
+        contactSurfaceParams.mContactSurfaceMotionVelocity;
+  }
 
   assert(mBodyNodeA->getSkeleton());
   assert(mBodyNodeB->getSkeleton());
@@ -231,6 +240,13 @@ ContactConstraint::ContactConstraint(
     mSpatialNormalA.col(0).tail<3>().noalias() = bodyDirectionA;
     mSpatialNormalB.col(0).tail<3>().noalias() = bodyDirectionB;
   }
+}
+
+//==============================================================================
+ContactConstraint::~ContactConstraint()
+{
+  std::lock_guard<std::mutex> lock(gContactSurfaceMotionVelocitiesMutex);
+  gContactSurfaceMotionVelocities.erase(this);
 }
 
 //==============================================================================
@@ -411,9 +427,13 @@ void ContactConstraint::getInformation(ConstraintInfo* info)
     }
 
     info->b[0] += bouncingVelocity;
-    info->b[0] += mContactSurfaceMotionVelocity.x();
-    info->b[1] += mContactSurfaceMotionVelocity.y();
-    info->b[2] += mContactSurfaceMotionVelocity.z();
+    {
+      std::lock_guard<std::mutex> lock(gContactSurfaceMotionVelocitiesMutex);
+      const auto& surfaceVelocity = gContactSurfaceMotionVelocities[this];
+      info->b[0] += surfaceVelocity.x();
+      info->b[1] += surfaceVelocity.y();
+      info->b[2] += surfaceVelocity.z();
+    }
 
     // TODO(JS): Initial guess
     // x
@@ -469,7 +489,10 @@ void ContactConstraint::getInformation(ConstraintInfo* info)
     }
 
     info->b[0] += bouncingVelocity;
-    info->b[0] += mContactSurfaceMotionVelocity.x();
+    {
+      std::lock_guard<std::mutex> lock(gContactSurfaceMotionVelocitiesMutex);
+      info->b[0] += gContactSurfaceMotionVelocities[this].x();
+    }
 
     // TODO(JS): Initial guess
     // x
@@ -675,6 +698,50 @@ void ContactConstraint::getRelVelocity(double* relVel)
 bool ContactConstraint::isActive() const
 {
   return mActive;
+}
+
+//==============================================================================
+double ContactConstraint::computeFrictionCoefficient(
+    const dynamics::ShapeNode* shapeNode)
+{
+  return DefaultContactSurfaceHandler::computeFrictionCoefficient(shapeNode);
+}
+
+//==============================================================================
+double ContactConstraint::computeSecondaryFrictionCoefficient(
+    const dynamics::ShapeNode* shapeNode)
+{
+  return DefaultContactSurfaceHandler::computeSecondaryFrictionCoefficient(
+      shapeNode);
+}
+
+//==============================================================================
+double ContactConstraint::computeSlipCompliance(
+    const dynamics::ShapeNode* shapeNode)
+{
+  return DefaultContactSurfaceHandler::computeSlipCompliance(shapeNode);
+}
+
+//==============================================================================
+double ContactConstraint::computeSecondarySlipCompliance(
+    const dynamics::ShapeNode* shapeNode)
+{
+  return DefaultContactSurfaceHandler::computeSecondarySlipCompliance(
+      shapeNode);
+}
+
+//==============================================================================
+Eigen::Vector3d ContactConstraint::computeWorldFirstFrictionDir(
+    const dynamics::ShapeNode* shapeNode)
+{
+  return DefaultContactSurfaceHandler::computeWorldFirstFrictionDir(shapeNode);
+}
+
+//==============================================================================
+double ContactConstraint::computeRestitutionCoefficient(
+    const dynamics::ShapeNode* shapeNode)
+{
+  return DefaultContactSurfaceHandler::computeRestitutionCoefficient(shapeNode);
 }
 
 //==============================================================================

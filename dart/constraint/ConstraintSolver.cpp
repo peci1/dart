@@ -32,6 +32,8 @@
 
 #include "dart/constraint/ConstraintSolver.hpp"
 #include <algorithm>
+#include <mutex>
+#include <unordered_map>
 
 #include "dart/collision/CollisionFilter.hpp"
 #include "dart/collision/CollisionGroup.hpp"
@@ -59,14 +61,17 @@ namespace constraint {
 
 using namespace dynamics;
 
+std::mutex gContactSurfaceHandlersMutex;
+std::unordered_map<const ConstraintSolver*, ContactSurfaceHandlerPtr>
+    gContactSurfaceHandlers;
+
 //==============================================================================
 ConstraintSolver::ConstraintSolver(double timeStep)
   : mCollisionDetector(collision::FCLCollisionDetector::create()),
     mCollisionGroup(mCollisionDetector->createCollisionGroupAsSharedPtr()),
     mCollisionOption(collision::CollisionOption(
         true, 1000u, std::make_shared<collision::BodyNodeCollisionFilter>())),
-    mTimeStep(timeStep),
-    mContactSurfaceHandler(std::make_shared<DefaultContactSurfaceHandler>())
+    mTimeStep(timeStep)
 {
   assert(timeStep > 0.0);
 
@@ -77,6 +82,12 @@ ConstraintSolver::ConstraintSolver(double timeStep)
   // TODO(JS): Consider using FCL's primitive shapes once FCL addresses
   // incorrect contact point computation.
   // (see: https://github.com/flexible-collision-library/fcl/issues/106)
+
+  {
+    std::lock_guard<std::mutex> lock(gContactSurfaceHandlersMutex);
+    gContactSurfaceHandlers[this] =
+        std::make_shared<DefaultContactSurfaceHandler>();
+  }
 }
 
 //==============================================================================
@@ -85,8 +96,7 @@ ConstraintSolver::ConstraintSolver()
     mCollisionGroup(mCollisionDetector->createCollisionGroupAsSharedPtr()),
     mCollisionOption(collision::CollisionOption(
         true, 1000u, std::make_shared<collision::BodyNodeCollisionFilter>())),
-    mTimeStep(0.001),
-    mContactSurfaceHandler(std::make_shared<DefaultContactSurfaceHandler>())
+    mTimeStep(0.001)
 {
   auto cd = std::static_pointer_cast<collision::FCLCollisionDetector>(
       mCollisionDetector);
@@ -95,6 +105,19 @@ ConstraintSolver::ConstraintSolver()
   // TODO(JS): Consider using FCL's primitive shapes once FCL addresses
   // incorrect contact point computation.
   // (see: https://github.com/flexible-collision-library/fcl/issues/106)
+
+  {
+    std::lock_guard<std::mutex> lock(gContactSurfaceHandlersMutex);
+    gContactSurfaceHandlers[this] =
+        std::make_shared<DefaultContactSurfaceHandler>();
+  }
+}
+
+//==============================================================================
+ConstraintSolver::~ConstraintSolver()
+{
+  std::lock_guard<std::mutex> lock(gContactSurfaceHandlersMutex);
+  gContactSurfaceHandlers.erase(this);
 }
 
 //==============================================================================
@@ -393,7 +416,10 @@ void ConstraintSolver::setFromOtherConstraintSolver(
   addSkeletons(other.getSkeletons());
   mManualConstraints = other.mManualConstraints;
 
-  mContactSurfaceHandler = other.mContactSurfaceHandler;
+  {
+    std::lock_guard<std::mutex> lock(gContactSurfaceHandlersMutex);
+    gContactSurfaceHandlers[this] = gContactSurfaceHandlers[&other];
+  }
 }
 
 //==============================================================================
@@ -561,8 +587,13 @@ void ConstraintSolver::updateConstraints()
     if (it != contactPairMap.end())
       numContacts = it->second;
 
-    auto contactConstraint = mContactSurfaceHandler->createConstraint(
-        *contact, numContacts, mTimeStep);
+    ContactConstraintPtr contactConstraint;
+    {
+      std::lock_guard<std::mutex> lock(gContactSurfaceHandlersMutex);
+      contactConstraint = gContactSurfaceHandlers[this]->createConstraint(
+          *contact, numContacts, mTimeStep);
+    }
+
     mContactConstraints.push_back(contactConstraint);
 
     contactConstraint->update();
@@ -756,15 +787,21 @@ bool ConstraintSolver::isSoftContact(const collision::Contact& contact) const
 ContactSurfaceHandlerPtr
 ConstraintSolver::getContactSurfaceHandler() const
 {
-  return mContactSurfaceHandler;
+  {
+    std::lock_guard<std::mutex> lock(gContactSurfaceHandlersMutex);
+    return gContactSurfaceHandlers[this];
+  }
 }
 
 //==============================================================================
 void ConstraintSolver::setContactSurfaceHandler(
     ContactSurfaceHandlerPtr handler)
 {
-  handler->setParent(mContactSurfaceHandler);
-  mContactSurfaceHandler = std::move(handler);
+  {
+    std::lock_guard<std::mutex> lock(gContactSurfaceHandlersMutex);
+    handler->setParent(gContactSurfaceHandlers[this]);
+    gContactSurfaceHandlers[this] = std::move(handler);
+  }
 }
 
 //==============================================================================
@@ -772,7 +809,8 @@ bool ConstraintSolver::removeContactSurfaceHandler(
     const ContactSurfaceHandlerPtr& handler)
 {
   bool found = false;
-  ContactSurfaceHandlerPtr current = mContactSurfaceHandler;
+  std::lock_guard<std::mutex> lock(gContactSurfaceHandlersMutex);
+  ContactSurfaceHandlerPtr current = gContactSurfaceHandlers[this];
   ContactSurfaceHandlerPtr previous = nullptr;
   while (current != nullptr)
   {
@@ -781,7 +819,7 @@ bool ConstraintSolver::removeContactSurfaceHandler(
       if (previous != nullptr)
         previous->mParent = current->mParent;
       else
-        mContactSurfaceHandler = current->mParent;
+        gContactSurfaceHandlers[this] = current->mParent;
       found = true;
       break;
     }
@@ -789,7 +827,7 @@ bool ConstraintSolver::removeContactSurfaceHandler(
     current = current->mParent;
   }
 
-  if (mContactSurfaceHandler == nullptr)
+  if (gContactSurfaceHandlers[this] == nullptr)
     dterr << "No contact surface handler remained. This is an error. Add at "
           << "least DefaultContactSurfaceHandler." << std::endl;
 

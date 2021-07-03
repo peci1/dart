@@ -77,7 +77,7 @@ public:
   ConstraintSolver(const ConstraintSolver& other) = delete;
 
   /// Destructor
-  virtual ~ConstraintSolver() = default;
+  virtual ~ConstraintSolver();
 
   /// Add single skeleton
   void addSkeleton(const dynamics::SkeletonPtr& skeleton);
@@ -279,7 +279,8 @@ protected:
   std::vector<ConstrainedGroup> mConstrainedGroups;
 
   /// Factory for ContactSurfaceParams for each contact
-  ContactSurfaceHandlerPtr mContactSurfaceHandler;
+  // Moved to gContactSurfaceHandlers in .cpp file to preserve ABI
+  // ContactSurfaceHandlerPtr mContactSurfaceHandler;
 };
 
 } // namespace constraint
