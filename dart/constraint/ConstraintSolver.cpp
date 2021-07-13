@@ -61,6 +61,8 @@ namespace constraint {
 
 using namespace dynamics;
 
+// These two globals are a hack made to retain ABI compatibility.
+// TODO(anyone): Revert e95a6 in a future ABI-breaking version.
 std::mutex gContactSurfaceHandlersMutex;
 std::unordered_map<const ConstraintSolver*, ContactSurfaceHandlerPtr>
     gContactSurfaceHandlers;

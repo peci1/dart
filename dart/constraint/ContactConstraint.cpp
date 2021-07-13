@@ -59,6 +59,8 @@ double ContactConstraint::mErrorReductionParameter = DART_ERP;
 double ContactConstraint::mMaxErrorReductionVelocity = DART_MAX_ERV;
 double ContactConstraint::mConstraintForceMixing = DART_CFM;
 
+// These two globals are a hack made to retain ABI compatibility.
+// TODO(anyone): Revert e95a6 in a future ABI-breaking version.
 std::mutex gContactSurfaceMotionVelocitiesMutex;
 std::unordered_map<ContactConstraint*, Eigen::Vector3d>
     gContactSurfaceMotionVelocities;
