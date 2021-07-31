@@ -581,27 +581,26 @@ void ConstraintSolver::updateConstraints()
   }
 
   // Add the new contact constraints to dynamic constraint list
-  for (auto* contact : contacts)
   {
-    std::size_t numContacts = 1;
-    auto it = contactPairMap.find(
-        std::make_pair(contact->collisionObject1, contact->collisionObject2));
-    if (it != contactPairMap.end())
-      numContacts = it->second;
-
-    ContactConstraintPtr contactConstraint;
+    std::lock_guard<std::mutex> lock(gContactSurfaceHandlersMutex);
+    for (auto* contact : contacts)
     {
-      std::lock_guard<std::mutex> lock(gContactSurfaceHandlersMutex);
-      contactConstraint = gContactSurfaceHandlers[this]->createConstraint(
-          *contact, numContacts, mTimeStep);
+      std::size_t numContacts = 1;
+      auto it = contactPairMap.find(
+          std::make_pair(contact->collisionObject1, contact->collisionObject2));
+      if (it != contactPairMap.end())
+        numContacts = it->second;
+
+      auto contactConstraint = gContactSurfaceHandlers[this]->createConstraint(
+        *contact, numContacts, mTimeStep);
+
+      mContactConstraints.push_back(contactConstraint);
+
+      contactConstraint->update();
+
+      if (contactConstraint->isActive())
+        mActiveConstraints.push_back(contactConstraint);
     }
-
-    mContactConstraints.push_back(contactConstraint);
-
-    contactConstraint->update();
-
-    if (contactConstraint->isActive())
-      mActiveConstraints.push_back(contactConstraint);
   }
 
   // Add the new soft contact constraints to dynamic constraint list
@@ -787,7 +786,7 @@ bool ConstraintSolver::isSoftContact(const collision::Contact& contact) const
 
 //==============================================================================
 ContactSurfaceHandlerPtr
-ConstraintSolver::getContactSurfaceHandler() const
+ConstraintSolver::getLastContactSurfaceHandler() const
 {
   {
     std::lock_guard<std::mutex> lock(gContactSurfaceHandlersMutex);
@@ -796,7 +795,7 @@ ConstraintSolver::getContactSurfaceHandler() const
 }
 
 //==============================================================================
-void ConstraintSolver::setContactSurfaceHandler(
+void ConstraintSolver::addContactSurfaceHandler(
     ContactSurfaceHandlerPtr handler)
 {
   {
